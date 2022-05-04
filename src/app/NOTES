@@ -1,0 +1,63 @@
+dt/temp
+dt/humidity
+dt/wetness
+dt/touch
+dt/daystage
+dt/plantstage
+dt/watering (signal)
+dt/light
+dt/proximity (signal)
+dt/noproximity (signal)
+dt/touch
+dt/error/domain
+
+cmd/water 
+cmd/feed 
+cmd/light
+cmd/led
+
+cfg/plantprogram
+cfg/daylength
+cfg/water_amount
+cfg/nutrition
+cfg/light
+
+sys/stop
+sys/restore
+sys/start
+sys/reboot
+sys/upgrade
+sys/tick
+
+
+- Create an message/signal (static or dynamic)
+- Create a time event, pass in the event, receiver and timing info
+
+TimeEvents intended use case:
+- Periodically publishing a message with data
+  - Time is X ms, "tick", "temperature is X", "humidity is x"
+      Messages, when posted, should be considered immutable - the sender should not re-use them again before read by all receivers (would require ack).
+      Therefore it is best to make new events ("multiple buffering") to ensure multithreading is not breaking things.
+
+      To not need to create new active timers, it is possible to register an expiry hook with the timer so that you can swap out what event will be sent.
+      It is allowed to provide NULL as the event when creating a timer if an expiry function is set that provides it.
+      
+      The expiry callback runs in an ISR context and should finish as fast as possible.
+
+Timer......x........x.........x.........x..........x..........x.........x
+fdfdsfdfsfd
+
+
+- One shot message:
+  - Timeout to oneself on waiting for something to happen
+  - Trigger for something to happen in future)
+
+
+    
+
+
+Periodic post a message
+  updateFxn - a one shot chance to add a new event to the timeevent. Do not modify the previously sent event; it might not have been processed by others yet.
+
+
+Start (even)

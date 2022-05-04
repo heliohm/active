@@ -1,0 +1,7 @@
+{
+  "cmake.configureOnOpen": true,
+  "files.associations": {
+    "console.h": "c",
+    "active.h": "c"
+  }
+}
