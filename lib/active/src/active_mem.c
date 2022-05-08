@@ -77,44 +77,44 @@ static void Active_mem_setDynamic(const Event *const e)
 
 void Active_mem_gc(const Event *e)
 {
-  if (Active_mem_isDynamic(e))
+  if (Active_mem_getRefCount(e) != 0)
   {
-    // No more references -> free event
-    // if (ATOMIC_GET((RefCnt *)&(e->_refcnt)) == 0)
-    if (Active_mem_getRefCount(e) == 0)
+    return;
+  }
+  if (!Active_mem_isDynamic(e))
+  {
+    return;
+  }
+
+  switch (e->type)
+  {
+  case TIMEREVT:
+  {
+    ACTIVE_ASSERT(TimeEvt_Mem.num_used > 0, "No time events to free");
+    k_mem_slab_free(&TimeEvt_Mem, (void *)&e);
+    break;
+  }
+  case SIGNAL:
+  {
+    ACTIVE_ASSERT(Signal_Mem.num_used > 0, "No Signal events to free");
+    k_mem_slab_free(&Signal_Mem, (void *)&e);
+    break;
+  }
+  case MESSAGE:
+  {
+    ACTIVE_ASSERT(0, "Not implemented");
+    if (EVT_CAST(e, Message)->header & 0x0) // MSG_HEADER_DYNAMIC_PAYLOAD)
     {
 
-      switch (e->type)
-      {
-
-      case TIMEREVT:
-      {
-        k_mem_slab_free(&TimeEvt_Mem, (void *)&e);
-        break;
-      }
-      case SIGNAL:
-      {
-
-        k_mem_slab_free(&Signal_Mem, (void *)&e);
-        break;
-      }
-      case MESSAGE:
-      {
-        ACTIVE_ASSERT(0, "Not implemented");
-        if (EVT_CAST(e, Message)->header & 0x0) // MSG_HEADER_DYNAMIC_PAYLOAD)
-        {
-
-          // e->_sender->freeFxn(EVT_CAST(e, Message)->payLoad);
-        }
-        // Then free the message struct
-        k_mem_slab_free(&Message_Mem, (void *)&e);
-        break;
-      }
-
-      default:
-        ACTIVE_ASSERT(0, "Invalid event type");
-      }
+      // e->_sender->freeFxn(EVT_CAST(e, Message)->payLoad);
     }
+    // Then free the message struct
+    k_mem_slab_free(&Message_Mem, (void *)&e);
+    break;
+  }
+
+  default:
+    ACTIVE_ASSERT(0, "Invalid event type");
   }
 }
 
@@ -135,7 +135,7 @@ TimeEvt *TimeEvt_new(Event *const e, const Active *const me, const Active *const
   return te;
 }
 
-ACTIVE_CASSERT(sizeof(TimeEvt) == 92, "TimeEvt type is not the right size.");
+ACTIVE_CASSERT(sizeof(TimeEvt) == 100, "TimeEvt type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(TimeEvt) == 4, "Alignment TimeEvt type");
 
 Signal *Signal_new(Active const *const me, uint16_t sig)

@@ -8,6 +8,8 @@
 struct timerData
 {
   ACTIVE_TIMER(impl);
+  size_t durationMs;
+  size_t periodMs;
   volatile bool running;
   volatile bool sync;
 };

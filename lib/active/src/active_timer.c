@@ -9,7 +9,7 @@ typedef enum TimerType
 
 static TimerType getTimerType(Active_Timer *timer)
 {
-  return K_TIMEOUT_EQ(timer->impl.period, K_MSEC(0)) ? ONESHOT : PERIODIC;
+  return timer->periodMs == 0 ? ONESHOT : PERIODIC;
 }
 
 // Runs in ISR context
@@ -22,11 +22,12 @@ static void Active_Timer_expiryCB(struct k_timer *timer)
   // Post time event
   Active_postTimeEvt(te);
 
-  // One shot time events - decrement reference immediately
-  // after posting - posting adds new ref that keeps it alive
   if (getTimerType(&(te->timer)) == ONESHOT)
   {
     te->timer.running = false;
+
+    // One shot time events - decrement reference immediately
+    // after posting - posting adds new ref that keeps it alive
     Active_mem_refdec(EVT_UPCAST(te));
   }
 }
@@ -61,6 +62,7 @@ Do not start dynamic TimerEvts after stopping them as they are freed.
 */
 void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
 {
+  ACTIVE_ASSERT(te != NULL, "Timer event is NULL");
   ACTIVE_ASSERT(te->super.type == TIMEREVT, "Timer event not initialized properly");
 
   // Add extra reference on timer event and any attached events
@@ -68,10 +70,16 @@ void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
   if (!te->timer.running)
   {
     Active_mem_refinc(EVT_UPCAST(te));
+    if (te->e)
+    {
+      Active_mem_refinc(te->e);
+    }
   }
 
   te->timer.running = true;
   te->timer.sync = false;
+  te->timer.durationMs = durationMs;
+  te->timer.periodMs = periodMs;
 
   k_timer_start(&(te->timer.impl), K_MSEC(durationMs), K_MSEC(periodMs));
 }
@@ -105,13 +113,9 @@ bool Active_TimeEvt_stop(TimeEvt *te)
     {
       Active_mem_refdec(EVT_UPCAST(te));
 
-      if (te->e && getTimerType(&te->timer) == ONESHOT)
+      if (te->e)
       {
-        // TODO: Find out if this event has been posted or not already.
-
-        // One shot: True if running and sync is true
-        // Periodic: ?
-        Active_mem_gc(te->e);
+        Active_mem_refdec(te->e);
       }
     }
   }

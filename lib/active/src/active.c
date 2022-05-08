@@ -32,13 +32,36 @@ void Active_eventLoop(Active *const me)
     {
       TimeEvt *te = EVT_CAST(e, TimeEvt);
 
-      // Let Active objects expiry function update attached event
+      const Event *last_evt = te->e;
+
       if (te->expFn)
       {
+        // Let Active objects expiry function update attached event
         te->e = te->expFn(te);
         ACTIVE_ASSERT(te->e != NULL, "Attached event is NULL");
+
+        // Add ref on returned event (might be same as in initial timer start)
+        Active_mem_refinc(te->e);
+
+        // If there was an unprocessed attached event, remove reference
+        if (last_evt)
+        {
+          Active_mem_refdec(last_evt);
+        }
       }
+
       Active_post(te->receiver, te->e);
+
+      // Un-attach dynamic event
+      bool shouldDetach = te->e->_dynamic;
+
+      // Clear reference set when attaching in expiry function
+      Active_mem_refdec(te->e);
+
+      if (shouldDetach)
+      {
+        te->e = NULL;
+      }
     }
     // Default: Let AO process event
     else

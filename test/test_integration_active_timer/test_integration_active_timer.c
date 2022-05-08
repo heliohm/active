@@ -19,6 +19,8 @@ const static threadData tdtest = {.thread = &testT,
 enum TestUserSignal
 {
   STATIC_SIG = USER_SIG,
+  SIGNAL_UNDEFINED,
+  ONESHOT_STATIC_STARTSTOP,
   DYNAMIC_SIG_1,
   DYNAMIC_SIG_2
 };
@@ -37,8 +39,35 @@ int64_t timeReceivedMs = 0, lastTimeReceivedMs = 0;
 
 RefCnt refCntDynamic = 0;
 
+enum TestUserSignal expectedSignal = SIGNAL_UNDEFINED;
+uint16_t eventsReceived, correctEventsReceived;
+
 static void ao_dispatch(Active *me, Event const *const e)
 {
+
+  // Ignore start signal
+  if (e->type == SIGNAL && EVT_CAST(e, Signal)->sig == START_SIG)
+  {
+    return;
+  }
+
+  // Count total events
+  eventsReceived++;
+
+  // Ignore events other than signal type in test
+  if (e->type != SIGNAL)
+  {
+    return;
+  }
+
+  Signal *s = EVT_CAST(e, Signal);
+
+  // Count number of expected events
+  if (expectedSignal == s->sig)
+  {
+
+    correctEventsReceived++;
+  }
 
   if ((e->type == SIGNAL) && (EVT_CAST(e, Signal)->sig == STATIC_SIG) && (e == EVT_UPCAST(&sigStaticOneShot)))
   {
@@ -58,7 +87,6 @@ static void ao_dispatch(Active *me, Event const *const e)
   if ((e->type == SIGNAL) && (EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_1) && (e == EVT_UPCAST(sigDynamicOneShotPtr)))
   {
     numDynamicOneShotReceived++;
-    refCntDynamic = Active_mem_getRefCount(e);
   }
 
   if ((e->type == SIGNAL) && ((EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_1) || (EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_2)) && (e == EVT_UPCAST(sigDynamicPeriodicPtr)))
@@ -86,21 +114,45 @@ static Event *expiryFn(const TimeEvt *const te)
       return EVT_UPCAST(sigDynamicPeriodicPtr);
     }
 
-    // Alternate between signals
-    if (EVT_CAST(te->e, Signal)->sig == DYNAMIC_SIG_1)
-    {
-      sigDynamicPeriodicPtr = Signal_new(&ao, DYNAMIC_SIG_2);
-    }
-    else
-    {
-      sigDynamicPeriodicPtr = Signal_new(&ao, DYNAMIC_SIG_1);
-    }
+    sigDynamicPeriodicPtr = Signal_new(&ao, DYNAMIC_SIG_1);
 
     return EVT_UPCAST(sigDynamicPeriodicPtr);
   }
 
   /* Error case */
   return (Event *)NULL;
+}
+
+static void test_function_timer_static_oneshot_startstop()
+{
+
+  const size_t timeOutMs = 20;
+  const size_t periodMs = 0;
+
+  Signal sig;
+  Signal_init(&sig, &ao, ONESHOT_STATIC_STARTSTOP);
+
+  expectedSignal = ONESHOT_STATIC_STARTSTOP;
+
+  TimeEvt te;
+  TimeEvt_init(&te, &ao, EVT_UPCAST(&te), &ao, NULL);
+  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+
+  /* Test timer flag is indicating to be running */
+  TEST_ASSERT_TRUE(te.timer.running);
+
+  /* Test timer indicated is was running when it was stopped */
+  bool status = Active_TimeEvt_stop(&te);
+  TEST_ASSERT_TRUE(status);
+
+  /* Test timer flag is indicating to not be running */
+  TEST_ASSERT_FALSE(te.timer.running);
+
+  k_msleep(timeOutMs);
+
+  /* Test timer actually did stop - no event received */
+  TEST_ASSERT_EQUAL_UINT16(0, eventsReceived);
+  TEST_ASSERT_EQUAL_UINT16(0, correctEventsReceived);
 }
 
 static void test_function_active_timer_static_oneshot()
@@ -206,7 +258,10 @@ static void test_function_active_timer_dynamic_oneshot()
   Active_TimeEvt_start(timeEvtDynamicOneShotPtr, timeOutMs, 0);
 
   /* Test event is actually received */
-  k_msleep(timeOutMs);
+  k_msleep(2 * timeOutMs);
+
+  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
   TEST_ASSERT_EQUAL_UINT16(1, numDynamicOneShotReceived);
 
   /* Test expiry function was called */
@@ -219,9 +274,6 @@ static void test_function_active_timer_dynamic_oneshot()
   /* Test automatic memory management of event */
   //  TEST_ASSERT_EQUAL(1, refCntDynamic);
   // TEST_ASSERT_EQUAL(0, Active_mem_getRefCount(timeEvtDynamicOneShotPtr->e));
-
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
 }
 
 static void test_function_active_timer_dynamic_periodic()
@@ -241,10 +293,9 @@ static void test_function_active_timer_dynamic_periodic()
   k_msleep(periodMs);
   TEST_ASSERT_EQUAL_UINT16(1, numDynamicPeriodicReceived);
 
+  printk("\ndebug\n");
   /* Test that remaining events are received */
   k_msleep((numEvents - 1) * periodMs);
-
-  TEST_ASSERT_EQUAL_UINT32(sigUsed, Active_mem_Signal_getUsed());
 
   Active_TimeEvt_stop(timeEvtDynamicPeriodicPtr);
   TEST_ASSERT_EQUAL_UINT16(numEvents, numDynamicPeriodicReceived);
@@ -263,6 +314,10 @@ void setUp()
   timeReceivedMs = 0, lastTimeReceivedMs = 0;
 
   refCntDynamic = 0;
+
+  expectedSignal = SIGNAL_UNDEFINED;
+  eventsReceived = 0;
+  correctEventsReceived = 0;
 }
 
 void main()
@@ -273,11 +328,12 @@ void main()
 
   Active_init(&ao, ao_dispatch);
   Active_start(&ao, &qdtest, &tdtest);
-  RUN_TEST(test_function_active_timer_static_oneshot);
-  RUN_TEST(test_function_active_timer_dynamic_periodic);
 
-  RUN_TEST(test_function_active_timer_static_periodic);
+  RUN_TEST(test_function_timer_static_oneshot_startstop);
+  RUN_TEST(test_function_active_timer_dynamic_periodic);
   RUN_TEST(test_function_active_timer_dynamic_oneshot);
+  RUN_TEST(test_function_active_timer_static_oneshot);
+  RUN_TEST(test_function_active_timer_static_periodic);
 
   UNITY_END();
 }

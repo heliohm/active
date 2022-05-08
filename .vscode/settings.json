@@ -2,6 +2,7 @@
   "cmake.configureOnOpen": true,
   "files.associations": {
     "console.h": "c",
-    "active.h": "c"
+    "active.h": "c",
+    "active_timer.h": "c"
   }
 }
