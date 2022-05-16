@@ -26,16 +26,16 @@ struct event
   Active *_sender;
   EvtType type;
   const atomic_t _refcnt;
-  const _Bool _dynamic;
+  const bool _dynamic;
 };
 
-/* Time event for posting other events on a timer (one shot or periodic) */
+/* Time event for posting an attached event on a timer (one shot or periodic) */
 struct timeevt
 {
   Event super;              // Sender and type (for delegation) and memory tracking
   Event const *e;           // Attached message to send
   Active const *receiver;   // AO to send message to if sending a direct message
-  TimerExpiryHandler expFn; // Expiry function to let AO update attached event to before posting it
+  TimerExpiryHandler expFn; // Expiry function to let AO replace attached event to before posting it
   Active_Timer timer;       // Timer instance belonging to time event
 } _PACKED_ ALIGNAS(4);
 
