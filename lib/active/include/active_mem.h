@@ -36,9 +36,13 @@ void Active_mem_refdec(const Event *e);
 
 /* @internal - used by Active framework tests */
 atomic_t Active_mem_getRefCount(const Event *const e);
+/* @internal - used by Active framework tests */
+uint32_t Active_mem_Signal_getUsed();
+/* @internal - used by Active framework tests */
+uint32_t Active_mem_TimeEvt_getUsed();
 
 /* Garbage collect / free unreferenced event. Must only to be used by application to free events that were
-not posted (in the framework only attached events when a running timer was stopped) */
+not posted by application or timer */
 void Active_mem_gc(const Event *e);
 
 #endif /* ACTIVE_MEM_H */
