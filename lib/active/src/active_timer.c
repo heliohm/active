@@ -41,39 +41,25 @@ void Timer_init(TimeEvt *te)
   te->timer.sync = false;
 }
 
-/*
-Memory management:
-Periodic timer
-  Start: Add ref
-  Expiry: Do nothing
-  Stop: Remove timer ref after stopping -> garbage collect
 
-Single ended timer
-  Start: Do nothing
-  Expiry: Post (will remove ref)
-  Stop - already expired: Do nothing (event + time event already freed)
-  Stop - GC
-*/
-
-/* Start a timer event.
-Duration: Time to first expiry. Period: Time to subsequent expirations (0 for one shot timer)
-Do not start dynamic TimeEvts again after expiry (one shot) as they are freed
-Do not start dynamic TimerEvts after stopping them as they are freed.
-*/
 void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
 {
   ACTIVE_ASSERT(te != NULL, "Timer event is NULL");
   ACTIVE_ASSERT(te->super.type == TIMEREVT, "Timer event not initialized properly");
 
+  if (te->timer.running)
+  {
+    return;
+  }
   // Add extra reference on timer event and any attached events
   // to have a trigger to free them when stopping
-  if (!te->timer.running)
+
+  Active_mem_refinc(EVT_UPCAST(te));
+
+  // Add reference to any attached event
+  if (te->e)
   {
-    Active_mem_refinc(EVT_UPCAST(te));
-    if (te->e)
-    {
-      Active_mem_refinc(te->e);
-    }
+    Active_mem_refinc(te->e);
   }
 
   te->timer.running = true;
@@ -93,31 +79,34 @@ bool Active_TimeEvt_stop(TimeEvt *te)
 {
   bool ret = false;
 
+  if (!te->timer.running)
+  {
+    return ret;
+  }
   // Stop timer
 
   te->timer.sync = true;
+
   k_timer_stop(&(te->timer.impl));
 
-  // Timer was stopped and did not expire first -> cleanup dynamic events
-  if (te->timer.running)
+  // Timer was stopped and did not expire first -> cleanup dynamic event
+
+  te->timer.running = false;
+  ret = true;
+
+  // Timer did not expire (ISR) between after calling Active_TimeEvt_stop
+  // and timer actually stopping
+
+  // Decrement reference count on time event and attached event
+  if (te->timer.sync == true)
   {
+    Active_mem_refdec(EVT_UPCAST(te));
 
-    te->timer.running = false;
-    ret = true;
-
-    // Timer did not expire (ISR) between after calling Active_TimeEvt_stop
-    // and timer actually stopping
-
-    // Decrement reference count on time event and attached event
-    if (te->timer.sync == true)
+    if (te->e)
     {
-      Active_mem_refdec(EVT_UPCAST(te));
-
-      if (te->e)
-      {
-        Active_mem_refdec(te->e);
-      }
+      Active_mem_refdec(te->e);
     }
   }
+
   return ret;
 }
