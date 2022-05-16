@@ -46,9 +46,11 @@ void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Act
   Timer_init(te);
 }
 
-/* Initialize a Signal object as non-dynamic before using it. This function should not be called by the application for Signal objects allocated by Signal_new */
+/* Initialize a Signal object as non-dynamic before using it. This function should not be called by the application for
+   dynamic Signal objects allocated by Signal_new */
 void Signal_init(Signal *s, Active const *const me, uint16_t sig)
 {
   Event_init(EVT_UPCAST(s), me, SIGNAL);
+  ACTIVE_ASSERT(sig >= (uint16_t)USER_SIG, "Signal type is invalid user defined signal");
   s->sig = sig;
 }
