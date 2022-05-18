@@ -25,37 +25,13 @@ void Active_eventLoop(Active *const me)
 
     ACTIVE_ASSERT(e != NULL, "Event object is null");
 
-    // Timer events are not processed by the dispatch function.
-    // Instead the attached event is posted in the context of the
+    // Timer events are not processed by the AO dispatch function.
+    // Instead the attached event is processed in the context of the
     // active object that started the timer event
     if (e->type == TIMEREVT)
     {
       TimeEvt *te = EVT_CAST(e, TimeEvt);
-
-      if (te->expFn)
-      {
-        // Let Active objects expiry function update attached event
-        Event *updated_evt = te->expFn(te);
-
-        if (updated_evt)
-        {
-          Event *last_evt = (Event *)te->e;
-          te->e = updated_evt;
-
-          // Add ref on new event (might be same as in initial timer start) to persist across posts
-          Active_mem_refinc(te->e);
-
-          // Clear ref on last attached event (set by start or previous exp fn) and GC it.
-          if (last_evt)
-          {
-            Active_mem_refdec(last_evt);
-          }
-        }
-
-        ACTIVE_ASSERT(te->e != NULL, "Attached event is NULL");
-      }
-
-      Active_post(te->receiver, te->e);
+      Active_TimeEvt_dispatch(te);
     }
     // Default: Let AO process event
     else
@@ -76,7 +52,7 @@ int Active_post(Active const *const receiver, Event const *const e)
 
   /* Adding a memory ref must be done before putting it on the receiving queue,
   in case receiving object is higher priority than running object
-  (which would decrement the ref counter and potentially free it) */
+  (which would decrement the ref counter while processingand potentially free it) */
   Active_mem_refinc(e);
 
   // NB: Pointer to pointer

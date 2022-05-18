@@ -43,7 +43,7 @@ void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Act
   te->e = e;
   te->receiver = receiver;
   te->expFn = expFn;
-  Timer_init(te);
+  Active_Timer_init(te);
 }
 
 /* Initialize a Signal object as non-dynamic before using it. This function should not be called by the application for

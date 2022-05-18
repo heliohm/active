@@ -32,15 +32,48 @@ static void Active_Timer_expiryCB(struct k_timer *timer)
   }
 }
 
-/* @private. Initialize the timer part of the Time Event. Not to be called by the application */
-void Timer_init(TimeEvt *te)
+void Active_TimeEvt_dispatch(TimeEvt *te)
+{
+  if (te->expFn)
+  {
+    // Let Active objects expiry function update attached event
+    Event *updated_evt = te->expFn(te);
+
+    if (updated_evt)
+    {
+      Event *last_evt = (Event *)te->e;
+      te->e = updated_evt;
+
+      // Add ref on new event (might be same as in initial timer start) to persist across posts
+      Active_mem_refinc(te->e);
+
+      // Clear ref on last attached event (set by start or previous exp fn) and GC it.
+      if (last_evt)
+      {
+        Active_mem_refdec(last_evt);
+      }
+    }
+
+    ACTIVE_ASSERT(te->e != NULL, "Attached event is NULL");
+  }
+
+  Active_post(te->receiver, te->e);
+
+  /* One shot events: Remove initial ref for freeing once processed */
+  if (getTimerType(&(te->timer)) == ONESHOT)
+  {
+    Active_mem_refdec(te->e);
+  }
+}
+
+/* @private. Initialize the timer part of a Time Event. Not to be called by the application */
+void Active_Timer_init(TimeEvt *te)
 {
   k_timer_init(&(te->timer.impl), Active_Timer_expiryCB, NULL);
   k_timer_user_data_set(&(te->timer.impl), te);
   te->timer.running = false;
   te->timer.sync = false;
 }
-
 
 void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
 {
@@ -71,8 +104,12 @@ void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
 }
 
 /* Stop a timer.
-Do not use dynamic timer event again after stopping it
-@return true: The timer was running when it was stopped. A dynamic attached event must be freed by the application
+Do not stop a one-shot dynamic timer event once it expired, as the time event might be freed. Use an expiry function when allocating time event to detect expiration if needed.
+Do not use dynamic timer event again after stopping it, as the time event might be freed.
+
+All dynamic time events or attached events will be freed by stopping timer.
+
+@return true: The timer was running when it was stopped.
         false:The timer was already expired (one-shot) or already stopped.
 */
 bool Active_TimeEvt_stop(TimeEvt *te)
@@ -84,7 +121,6 @@ bool Active_TimeEvt_stop(TimeEvt *te)
     return ret;
   }
   // Stop timer
-
   te->timer.sync = true;
 
   k_timer_stop(&(te->timer.impl));

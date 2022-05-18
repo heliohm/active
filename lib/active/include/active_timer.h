@@ -15,8 +15,9 @@ struct timerData
 };
 
 /* @private - used by Active framework - interface to initialize timer part of time events */
-void Timer_init(TimeEvt *te);
-
+void Active_Timer_init(TimeEvt *te);
+/* @private - used by Active framework - callback to process time events */
+void Active_TimeEvt_dispatch(TimeEvt *te);
 /* ISR Function that takes Time Event pointer as argument and returns an Event pointer that should be attached on this expiry */
 typedef Event *(*TimerExpiryHandler)(TimeEvt const *const te);
 
