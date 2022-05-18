@@ -28,28 +28,14 @@ enum TestUserSignal
   ONESHOT_DYNAMIC_EXPIRE_EXPFN_1,
   ONESHOT_DYNAMIC_EXPIRE_EXPFN_2,
   PERIODIC_STATIC_EXPIRE,
-  PERIODIC_DYNAMIC_EXPIRE,
-  DYNAMIC_SIG_1,
-  DYNAMIC_SIG_2
+  PERIODIC_DYNAMIC_EXPIRE
 };
 
 Active ao;
 
-Signal sigStaticOneShot, sigStaticPeriodic, *sigDynamicOneShotPtr, *sigDynamicPeriodicPtr;
-
-TimeEvt timeEvtStaticOneShot, timeEvtStaticPeriodic, *timeEvtDynamicOneShotPtr, *timeEvtDynamicPeriodicPtr;
-
-uint16_t numStaticPeriodicReceived = 0, numDynamicOneShotReceived = 0, numDynamicPeriodicReceived = 0;
-
-uint16_t numExpiryFxnOneShotCalled = 0, numExpiryFxnPeriodicCalled = 0;
-
 int64_t timeReceivedMs = 0, lastTimeReceivedMs = 0;
-
-RefCnt refCntDynamic = 0;
-
 enum TestUserSignal expectedSignal = SIGNAL_UNDEFINED;
 uint16_t eventsReceived, correctEventsReceived;
-uint16_t expFnNumCalled;
 
 static void ao_dispatch(Active *me, Event const *const e)
 {
@@ -78,17 +64,6 @@ static void ao_dispatch(Active *me, Event const *const e)
     correctEventsReceived++;
     lastTimeReceivedMs = timeReceivedMs;
     timeReceivedMs = k_uptime_get();
-  }
-
-  if ((e->type == SIGNAL) && (EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_1) && (e == EVT_UPCAST(sigDynamicOneShotPtr)))
-  {
-    numDynamicOneShotReceived++;
-  }
-
-  if ((e->type == SIGNAL) && ((EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_1) || (EVT_CAST(e, Signal)->sig == DYNAMIC_SIG_2)) && (e == EVT_UPCAST(sigDynamicPeriodicPtr)))
-  {
-    numDynamicPeriodicReceived++;
-    refCntDynamic = Active_mem_getRefCount(e);
   }
 }
 
@@ -207,7 +182,7 @@ static void test_function_timer_static_oneshot_expire()
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   /* Stopping an expired one shot timer returns that timer is stopped already */
-  bool status = Active_TimeEvt_stop(&timeEvtStaticOneShot);
+  bool status = Active_TimeEvt_stop(&te);
   TEST_ASSERT_FALSE(status);
 }
 
@@ -445,16 +420,9 @@ static void test_function_timer_dynamic_periodic_expire()
 
 void setUp()
 {
-  numStaticPeriodicReceived = 0, numDynamicOneShotReceived = 0, numDynamicPeriodicReceived = 0;
-
-  numExpiryFxnOneShotCalled = 0, numExpiryFxnPeriodicCalled = 0;
-
-  refCntDynamic = 0;
-
   expectedSignal = SIGNAL_UNDEFINED;
   eventsReceived = 0;
   correctEventsReceived = 0;
-  expFnNumCalled = 0;
 
   timeReceivedMs = 0, lastTimeReceivedMs = 0;
 }
