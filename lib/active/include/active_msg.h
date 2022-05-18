@@ -10,14 +10,17 @@
 #define EVT_UPCAST(ptr) ((Event *)(ptr))
 #define EVT_CAST(ptr, type) ((type *)(ptr))
 
-/* Statically allocate a signal object with no sender information */
+/**
+ * @brief Statically and initialize allocate a signal object with no sender information
+ *
+ */
 #define SIGNAL_DEFINE(symbol, signal) Signal symbol =                                                            \
                                           {.super = (Event){.type = SIGNAL, ._sender = NULL, ._dynamic = false}, \
                                            .sig = signal};
 
-/***************************
- * Actor message types
- **************************/
+/******************************
+ * Active object message types
+ *****************************/
 
 /* Base event, never to be used directly. Used for polymorphism of other
 message types */
@@ -62,7 +65,29 @@ enum ReservedSignals
   USER_SIG       /* First user signal starts here */
 };
 
-/* Initialize a static signal before using it */
+/**
+ * @brief Initialize a signal structure before using it
+ *
+   Do not call function with signal pointer to an object allocated with Signal_new
+ *
+ * @param s Pointer to the statically allocated Signal structure to initialize
+ * @param me The active object that will post the Signal
+ * @param sig The signal to send. Must be >= ReservedSignals.USER_SIG
+ *
+ */
 void Signal_init(Signal *s, Active const *const me, uint16_t sig);
+
+/**
+ * @brief Initialize a time event structure before using it
+ *
+ * A time event will delay post and/or post periodically an attached event (i.e. a Signal) to the receiver.
+ *
+ * @param te A pointer to the statically allocated time event structure to initialize
+ * @param me The active object that will process the time event and post the attached event
+ * @param e A pointer to the event to be attached and posted on timer expiry. Can be NULL if expiry function is set.
+ * @param receiver The receiving active object of the attached event
+ * @param expFn Expiry function to that can update the attached event on timer expiry
+ */
 void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Active const *const receiver, TimerExpiryHandler expFn);
+
 #endif /* ACTIVE_MSG_H */
