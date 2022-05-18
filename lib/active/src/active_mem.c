@@ -1,5 +1,4 @@
 #include <active.h>
-
 #include <zephyr.h>
 
 struct mempoolData

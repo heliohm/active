@@ -1,5 +1,4 @@
 #include <active.h>
-#include "active_timer.h"
 
 typedef enum TimerType
 {

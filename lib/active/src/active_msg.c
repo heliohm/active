@@ -1,7 +1,5 @@
 #include <stdbool.h>
-
-#include <active_msg.h>
-#include <active_timer.h>
+#include <active.h>
 
 static void Event_init(Event *const e, Active const *const me, EvtType t)
 {
