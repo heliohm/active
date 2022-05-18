@@ -35,7 +35,7 @@ struct timeevt
   Event super;              // Sender and type (for delegation) and memory tracking
   Event const *e;           // Attached message to send
   Active const *receiver;   // AO to send message to if sending a direct message
-  TimerExpiryHandler expFn; // Expiry function to let AO replace attached event to before posting it
+  TimerExpiryHandler expFn; // Expiry function to let AO replace attached event at timer expiry
   Active_Timer timer;       // Timer instance belonging to time event
 } _PACKED_ ALIGNAS(4);
 
