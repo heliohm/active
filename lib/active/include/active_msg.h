@@ -26,17 +26,17 @@
 message types */
 struct event
 {
-  Active *_sender;
-  EvtType type;
-  const atomic_t _refcnt;
-  const bool _dynamic;
+  Active *_sender;        // Sender of event
+  EvtType type;           // Type of event
+  const atomic_t _refcnt; // Number of memory references for event
+  const bool _dynamic;    // Flag for memory management to know if event is dynamic or static
 };
 
 /* Time event for posting an attached event on a timer (one shot or periodic) */
 struct timeevt
 {
   Event super;              // Sender and type (for delegation) and memory tracking
-  Event const *e;           // Attached message to send
+  Event const *e;           // Attached event to send on expiry
   Active const *receiver;   // AO to send message to if sending a direct message
   TimerExpiryHandler expFn; // Expiry function to let AO replace attached event at timer expiry
   Active_Timer timer;       // Timer instance belonging to time event

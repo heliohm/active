@@ -9,7 +9,6 @@ https://docs.zephyrproject.org/latest/reference/kernel/data_passing/message_queu
 
 ACTIVE_CASSERT(ALIGNOF(Event *) == 4, "Alignment Event pointer type");
 
-/* Todo: Can be removed? */
 ACTIVE_CASSERT(sizeof(Event) == 16, "Event type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(Event) == 4, "Alignment Event type");
 
