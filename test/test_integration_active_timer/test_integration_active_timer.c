@@ -23,6 +23,7 @@ enum TestUserSignal
   ONESHOT_DYNAMIC_STARTSTOP,
   ONESHOT_STATIC_EXPIRE,
   ONESHOT_DYNAMIC_EXPIRE,
+  ONESHOT_DYNAMIC_EXPIRE_STOP,
   ONESHOT_STATIC_EXPIRE_EXPFN_1,
   ONESHOT_STATIC_EXPIRE_EXPFN_2,
   ONESHOT_DYNAMIC_EXPIRE_EXPFN_1,
@@ -222,6 +223,53 @@ static void test_function_timer_dynamic_oneshot_expire()
   TEST_ASSERT_EQUAL_INT32(timeOutMs, (int32_t)(timeReceivedMs - timeBeforeTest));
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
+  /* Test memory management correctly freeing events when stopping prematurely */
+  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+}
+
+// Test checking if dynamic time event has expired before stopping
+static void test_function_timer_dynamic_oneshot_expire_stop()
+{
+  const size_t timeOutMs = 10;
+  const size_t sleepMs = 9;
+  const size_t periodMs = 0;
+
+  size_t sigUsed = Active_mem_Signal_getUsed();
+  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+
+  expectedSignal = ONESHOT_DYNAMIC_EXPIRE_STOP;
+
+  Signal *sig;
+  TimeEvt *te;
+
+  size_t loops = 0;
+  while (1)
+  {
+    sig = Signal_new(&ao, expectedSignal);
+    te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
+    // Add manual reference on time event to prevent it from being freed when expiring
+    Active_mem_refinc(EVT_UPCAST(te));
+
+    Active_TimeEvt_start(te, timeOutMs, periodMs);
+
+    // Linearly increasing sleep+busy wait period until hitting timer expiry
+    k_msleep(sleepMs);
+    loops++;
+    atomic_t i = loops;
+    while (atomic_dec(&i))
+    {
+      __ASM("NOP");
+    }
+
+    bool status = Active_TimeEvt_stop(te);
+    Active_mem_refdec(EVT_UPCAST(te));
+
+    if (status)
+    {
+      break;
+    }
+  }
   /* Test memory management correctly freeing events when stopping prematurely */
   TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
   TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
@@ -439,6 +487,8 @@ void main()
   /* Test a oneshot timer event w attached event that is started and stopped before expiry */
   RUN_TEST(test_function_timer_static_oneshot_startstop);
   RUN_TEST(test_function_timer_dynamic_oneshot_startstop);
+  /* Test stopping a dynamic oneshot timer around expiration (race condition) */
+  RUN_TEST(test_function_timer_dynamic_oneshot_expire_stop);
 
   /* Test a oneshot timer w attached event that is started and runs to expiry */
   RUN_TEST(test_function_timer_static_oneshot_expire);
