@@ -1,13 +1,5 @@
 #include <active.h>
 
-void Active_init(Active *const me, DispatchHandler dispatch)
-{
-  ACTIVE_ASSERT(me != NULL, "Active object is null)");
-  ACTIVE_ASSERT(dispatch != NULL, "Dispatch handler is null");
-
-  me->dispatch = dispatch;
-}
-
 void Active_eventLoop(Active *const me)
 {
   ACTIVE_ASSERT(me != NULL, "Active object is null)");

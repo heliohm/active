@@ -64,17 +64,17 @@ struct queueData
  *
  * @param me Pointer to the active object data structure to initialize
  * @param dispatch Application dispatch function that will receive events
+ * @param qd Pointer to queue related data needed by active object
+ * @param td Pointer to thread/task related data needed by active object
  */
-void Active_init(Active *const me, DispatchHandler dispatch);
+void Active_init(Active *const me, DispatchHandler dispatch, queueData const *qd, threadData const *td);
 /**
  * @brief Start the execution of an active object. When the active object starts, the dispatch function will
  * receive a signal with START_SIG payload that can be used to initialize the application.
  *
  * @param me Pointer to the active object that should be started
- * @param qd Pointer to queue related data needed by active object
- * @param td Pointer to thread/task related data needed by active object
  */
-void Active_start(Active *const me, queueData const *qd, threadData const *td);
+void Active_start(Active *const me);
 
 /* @private - Used by Active framework ports */
 void Active_eventLoop(Active *me);

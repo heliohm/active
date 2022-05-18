@@ -64,8 +64,8 @@ void main()
 
   UNITY_BEGIN();
 
-  Active_init(&ao, ao_dispatch);
-  Active_start(&ao, &qdtest, &tdtest);
+  Active_init(&ao, ao_dispatch, &qdtest, &tdtest);
+  Active_start(&ao);
 
   Signal_init(&testSig, &ao, TEST_SIG);
   Signal_init(&timeSig, &ao, TIME_SIG);

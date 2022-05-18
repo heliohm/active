@@ -65,11 +65,11 @@ int main(void)
   Signal *s2 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
   Signal *s3 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
 
-  PingPong_init(&ao_ping);
-  Active_start(ACTIVE_UPCAST(&ao_ping), &qdping, &tdping);
+  PingPong_init(&ao_ping, &qdping, &tdping);
+  Active_start(ACTIVE_UPCAST(&ao_ping));
 
-  PingPong_init(&ao_pong);
-  Active_start(ACTIVE_UPCAST(&ao_pong), &qdpong, &tdpong);
+  PingPong_init(&ao_pong, &qdpong, &tdpong);
+  Active_start(ACTIVE_UPCAST(&ao_pong));
 
   Active_post(ACTIVE_UPCAST(&ao_ping), EVT_UPCAST(&pingSignal));
   Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s));

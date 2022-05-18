@@ -8,7 +8,7 @@
 
 extern Signal pingSignal, pongSignal;
 
-static void PingPong_dispatch(PingPong *const me, Event const *const e)
+static void PingPong_dispatch(Active *const me, Event const *const e)
 {
   k_msleep(100);
 
@@ -65,7 +65,7 @@ static void PingPong_dispatch(PingPong *const me, Event const *const e)
   }
 }
 
-void PingPong_init(PingPong *const me)
+void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td)
 {
-  Active_init(&(me->super), (DispatchHandler)PingPong_dispatch);
+  Active_init(&(me->super), PingPong_dispatch, qd, td);
 }

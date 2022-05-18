@@ -33,16 +33,18 @@ static void ao_initDispatch(Active *me, Event const *const e)
 static void test_function_active_init()
 {
   Active ao;
-  Active_init(&ao, ao_emptyDispatch);
+  Active_init(&ao, ao_emptyDispatch, &qdtest, &tdtest);
 
   TEST_ASSERT_EQUAL(ao_emptyDispatch, ao.dispatch);
+  TEST_ASSERT_EQUAL(qdtest.queue, ao.queue);
 }
 
 static void test_function_active_start()
 {
   Active ao;
-  Active_init(&ao, ao_initDispatch);
-  Active_start(&ao, &qdtest, &tdtest);
+  // Todo: Refactor to not create new threads in init.
+  Active_init(&ao, ao_initDispatch, &qdtest, &tdtest);
+  Active_start(&ao);
   k_msleep(50);
   TEST_ASSERT_TRUE(wasInitSigReceived);
 }

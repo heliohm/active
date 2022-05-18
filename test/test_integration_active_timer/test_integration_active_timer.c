@@ -481,8 +481,8 @@ void main()
 
   UNITY_BEGIN();
 
-  Active_init(&ao, ao_dispatch);
-  Active_start(&ao, &qdtest, &tdtest);
+  Active_init(&ao, ao_dispatch, &qdtest, &tdtest);
+  Active_start(&ao);
 
   /* Test a oneshot timer event w attached event that is started and stopped before expiry */
   RUN_TEST(test_function_timer_static_oneshot_startstop);
