@@ -103,15 +103,6 @@ void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
   k_timer_start(&(te->timer.impl), K_MSEC(durationMs), K_MSEC(periodMs));
 }
 
-/* Stop a timer.
-Do not stop a one-shot dynamic timer event once it expired, as the time event might be freed. Use an expiry function when allocating time event to detect expiration if needed.
-Do not use dynamic timer event again after stopping it, as the time event might be freed.
-
-All dynamic time events or attached events will be freed by stopping timer.
-
-@return true: The timer was running when it was stopped.
-        false:The timer was already expired (one-shot) or already stopped.
-*/
 bool Active_TimeEvt_stop(TimeEvt *te)
 {
   bool ret = false;

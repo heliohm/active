@@ -39,7 +39,7 @@ void Active_eventLoop(Active *const me)
       me->dispatch(me, e);
     }
 
-    // Decrement reference counter after event is processed
+    // Decrement reference counter added by Active_post after event is processed
     Active_mem_refdec(e);
   }
 }
