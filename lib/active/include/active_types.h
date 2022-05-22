@@ -7,6 +7,7 @@
 typedef struct event Event;
 typedef struct timeevt TimeEvt;
 typedef struct signal Signal;
+typedef struct message Message;
 
 /* Types of events supported by Active framework */
 typedef enum evtType

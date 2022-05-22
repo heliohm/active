@@ -15,6 +15,20 @@ static void Event_init(Event *const e, Active const *const me, EvtType t)
   bool *dyn = (bool *)&(e->_dynamic);
   *dyn = false;
 }
+void Signal_init(Signal *s, Active const *const me, uint16_t sig)
+{
+  Event_init(EVT_UPCAST(s), me, SIGNAL);
+  ACTIVE_ASSERT(sig >= (uint16_t)USER_SIG, "Signal type is invalid user defined signal");
+  s->sig = sig;
+}
+
+void Message_init(Message *m, Active const *const me, uint16_t header, void *payload, uint16_t payloadLen)
+{
+  Event_init(EVT_UPCAST(m), me, MESSAGE);
+  m->header = header;
+  m->payload = payload;
+  m->payloadLen = payloadLen;
+}
 
 void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Active const *const receiver, TimerExpiryHandler expFn)
 {
@@ -28,11 +42,4 @@ void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Act
   te->receiver = receiver;
   te->expFn = expFn;
   Active_Timer_init(te);
-}
-
-void Signal_init(Signal *s, Active const *const me, uint16_t sig)
-{
-  Event_init(EVT_UPCAST(s), me, SIGNAL);
-  ACTIVE_ASSERT(sig >= (uint16_t)USER_SIG, "Signal type is invalid user defined signal");
-  s->sig = sig;
 }

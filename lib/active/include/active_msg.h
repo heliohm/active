@@ -50,13 +50,13 @@ struct signal
 };
 
 /* Generic message type consisting of header, payload and payload length */
-typedef struct message
+struct message
 {
   Event super;
+  void *payload;
   uint16_t header;
-  void *payLoad;
-  uint32_t payLoadLen;
-} Message;
+  uint16_t payloadLen;
+};
 
 /* Reserved signals by Active framework */
 enum ReservedSignals
@@ -89,5 +89,7 @@ void Signal_init(Signal *s, Active const *const me, uint16_t sig);
  * @param expFn Expiry function to that can update the attached event on timer expiry
  */
 void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Active const *const receiver, TimerExpiryHandler expFn);
+
+void Message_init(Message *m, Active const *const me, uint16_t header, void *payload, uint16_t payloadLen);
 
 #endif /* ACTIVE_MSG_H */

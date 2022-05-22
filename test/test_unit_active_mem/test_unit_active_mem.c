@@ -20,6 +20,26 @@ void test_signal_new()
   Active_mem_gc(EVT_UPCAST(s));
 }
 
+void test_message_new()
+{
+  Active ao;
+
+  static const uint32_t msgPayload[] = {0xDEADBEEF, 0xBADDCAFE, 0xBAAAAAAD};
+  static const size_t len = sizeof(msgPayload) / sizeof(msgPayload[0]);
+  uint16_t header = 0xBABA;
+
+  Message *m = Message_new(&ao, header, (void *)msgPayload, len);
+
+  TEST_ASSERT_EQUAL_UINT16(header, m->header);
+  TEST_ASSERT_EQUAL_PTR(&msgPayload, m->payload);
+  TEST_ASSERT_EQUAL_UINT16(len, m->payloadLen);
+
+  TEST_ASSERT_TRUE(m->super._dynamic);
+  TEST_ASSERT_EQUAL(&ao, m->super._sender);
+
+  Active_mem_gc(EVT_UPCAST(m));
+}
+
 void test_timeevt_new()
 {
   Active ao;
@@ -85,6 +105,7 @@ void main()
   RUN_TEST(test_active_mem_ref_dec);
 
   RUN_TEST(test_signal_new);
+  RUN_TEST(test_message_new);
   RUN_TEST(test_timeevt_new);
   RUN_TEST(test_active_mem_gc);
 

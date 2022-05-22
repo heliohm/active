@@ -37,6 +37,7 @@ Active ao;
 int64_t timeReceivedMs = 0, lastTimeReceivedMs = 0;
 enum TestUserSignal expectedSignal = SIGNAL_UNDEFINED;
 uint16_t eventsReceived, correctEventsReceived;
+uint32_t expectedMsgPayload = 0;
 
 static void ao_dispatch(Active *me, Event const *const e)
 {
@@ -51,20 +52,26 @@ static void ao_dispatch(Active *me, Event const *const e)
   eventsReceived++;
 
   // Ignore events other than signal type in test
-  if (e->type != SIGNAL)
+  if (e->type == SIGNAL)
   {
-    return;
+    Signal *s = EVT_CAST(e, Signal);
+
+    // Count number of expected events
+    if (expectedSignal == s->sig)
+    {
+
+      correctEventsReceived++;
+      lastTimeReceivedMs = timeReceivedMs;
+      timeReceivedMs = k_uptime_get();
+    }
   }
-
-  Signal *s = EVT_CAST(e, Signal);
-
-  // Count number of expected events
-  if (expectedSignal == s->sig)
+  else if (e->type == MESSAGE)
   {
-
-    correctEventsReceived++;
-    lastTimeReceivedMs = timeReceivedMs;
-    timeReceivedMs = k_uptime_get();
+    Message *m = EVT_CAST(e, Message);
+    if (m->header == 0xBABA && expectedMsgPayload == *(uint32_t *)m->payload)
+    {
+      correctEventsReceived++;
+    }
   }
 }
 
@@ -466,9 +473,94 @@ static void test_function_timer_dynamic_periodic_expire()
   TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
 }
 
+static uint32_t buf0[] = {0xDEADBEEF, 0xDEADBEEF};
+static uint32_t buf1[] = {0xBADDCAFE, 0xBAAAAAAD};
+static const char bufSz = 2;
+static uint16_t header = 0xBABA;
+static uint32_t *writeBuf = buf0;
+static char writeBufIdx = 0;
+
+Event *msgExpFn(const TimeEvt *const te)
+{
+
+  static Message *msg = NULL;
+
+  if (msg)
+  {
+    /* Test same event returned last time called is given in expiry function */
+    TEST_ASSERT_EQUAL_PTR(msg, te->e);
+  }
+  // Prepare message with old write buffer
+  msg = Message_new(&ao, header, writeBuf, bufSz);
+
+  // Swap write buffer.
+  writeBuf = (writeBuf == buf0) ? buf1 : buf0;
+  writeBufIdx = 0;
+
+  // Return message for posting to receiver
+  return EVT_UPCAST(msg);
+}
+
+/* Test a periodic dynamic time evt that updates attached message event every expiration.
+This is typical for a producer / consumer setting where the consumer is the dispatch function and the
+producter is the test function */
+static void test_function_timer_dynamic_periodic_expire_expFn()
+{
+
+  const size_t timeOutMs = 10;
+  const size_t periodMs = 10;
+
+  size_t msgUsed = Active_mem_Message_getUsed();
+  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+
+  size_t numEvents = 10;
+
+  // Initial time event has no attached event.
+  TimeEvt *te;
+  te = TimeEvt_new(EVT_UPCAST(NULL), &ao, &ao, msgExpFn);
+
+  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  /* Timer is indicating to be running */
+  TEST_ASSERT_TRUE(te->timer.running);
+  size_t i = numEvents;
+  while (i--)
+  {
+    /* Produce things in buffer
+    .
+    .
+    .
+    */
+
+    /* NB: This test is not thread safe, as expiry function is called in ao (active object) context (thread) while
+    test function runs in different context.
+    However, an active object creating a time event / message will have expiry function called in same context and be safe. */
+    expectedMsgPayload = (writeBuf == buf0 ? buf0[0] : buf1[0]);
+    k_msleep(periodMs);
+  }
+
+  bool status = Active_TimeEvt_stop(te);
+
+  /* Test status returned as running */
+  TEST_ASSERT_TRUE(status);
+
+  /* Correct number of events fired */
+  TEST_ASSERT_EQUAL_UINT16(numEvents, correctEventsReceived);
+
+  k_msleep(1 * periodMs);
+
+  /* Timer is stopped - no more events are fired */
+  TEST_ASSERT_FALSE(te->timer.running);
+  TEST_ASSERT_EQUAL_UINT16(numEvents, correctEventsReceived);
+
+  /* Test memory management correctly freeing events after stopping  */
+  TEST_ASSERT_EQUAL(msgUsed, Active_mem_Message_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+}
+
 void setUp()
 {
   expectedSignal = SIGNAL_UNDEFINED;
+  expectedMsgPayload = 0;
   eventsReceived = 0;
   correctEventsReceived = 0;
 
@@ -501,6 +593,9 @@ void main()
   /* Test a periodic timer w attached event and no expiry function ("tick") */
   RUN_TEST(test_function_timer_static_periodic_expire);
   RUN_TEST(test_function_timer_dynamic_periodic_expire);
+
+  /* Test a periodic timer w attached message replaced every expiry (producer/consumer) */
+  RUN_TEST(test_function_timer_dynamic_periodic_expire_expFn);
 
   UNITY_END();
 }

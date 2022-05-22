@@ -28,6 +28,25 @@ void test_function_signal_init()
   TEST_ASSERT_EQUAL(&ao, s.super._sender);
 }
 
+void test_function_message_init()
+{
+  Message m;
+  Active ao;
+
+  static const uint32_t msgPayload[] = {0xDEADBEEF, 0xBADDCAFE, 0xBAAAAAAD};
+  static const size_t len = sizeof(msgPayload) / sizeof(msgPayload[0]);
+  uint16_t header = 0xBABA;
+
+  Message_init(&m, &ao, header, (void *)msgPayload, len);
+
+  TEST_ASSERT_EQUAL_UINT16(header, m.header);
+  TEST_ASSERT_EQUAL_PTR(&msgPayload, m.payload);
+  TEST_ASSERT_EQUAL_UINT16(len, m.payloadLen);
+
+  TEST_ASSERT_FALSE(m.super._dynamic);
+  TEST_ASSERT_EQUAL(&ao, m.super._sender);
+}
+
 static Event *expFn(TimeEvt const *const te)
 {
   return (Event *)NULL;
@@ -76,6 +95,7 @@ void main()
 
   RUN_TEST(test_macro_signal);
   RUN_TEST(test_function_signal_init);
+  RUN_TEST(test_function_message_init);
   RUN_TEST(test_function_timeevt_init);
   RUN_TEST(test_macro_evt_upcast);
   RUN_TEST(test_macro_evt_cast);
