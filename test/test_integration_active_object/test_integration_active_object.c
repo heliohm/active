@@ -42,7 +42,7 @@ static void test_function_active_init()
 static void test_function_active_start()
 {
   Active ao;
-  // Todo: Refactor to not create new threads in init.
+  // Todo: Refactor test to terminate thread after test
   Active_init(&ao, ao_initDispatch, &qdtest, &tdtest);
   Active_start(&ao);
   k_msleep(50);

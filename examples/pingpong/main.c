@@ -4,8 +4,8 @@
 
 #include <active.h>
 
-#include "app/pingpong.h"
-#include "app/active_app_messages.h"
+#include "pingpong.h"
+#include "active_app_messages.h"
 
 PingPong ao_ping, ao_pong;
 
