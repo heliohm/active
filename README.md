@@ -35,7 +35,7 @@ Maintainers and pull requests are welcome.
 
 All framework and compiler specific code is found in active_port files for simple extension to new frameworks.
 The library make use of runtime "polymorphism" to represent Active objects and message types through function pointers and base
-classes for Events and Active objects.
+classes (structs) for Events and Active objects.
 
 ## Porting requirements:
 
