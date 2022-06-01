@@ -86,7 +86,7 @@ static _INLINE_ void Active_get(void const *qPtr, Event **e)
 {
 
   int status = k_msgq_get((struct k_msgq *)qPtr, e, K_FOREVER);
-  ACTIVE_ASSERT(status == 0, "Message was not retrieved. Error: %i", status);
+  ACTIVE_ASSERT(status == 0, "Event was not retrieved. Error: %i", status);
 
   ARG_UNUSED(status);
 }
@@ -98,7 +98,7 @@ static _INLINE_ int Active_put(void const *qPtr, Event const *const *const e)
 
   // TODO: Tracing - log k_msgq_numfree_get
 
-  ACTIVE_ASSERT(status == 0, "Message not put on queue %p. Error: %i\n\n", qPtr, status);
+  ACTIVE_ASSERT(status == 0, "Event not put on queue %p. Error: %i\n\n", qPtr, status);
 
   return status;
 }
