@@ -12,7 +12,7 @@ A broad class of producer/consumer and reader/writer applications are well suite
 
 The Active framework can be used together with normal threads running in parallel.
 
-The framework is inspired by the QP/C framework from Quantum Leaps - read more about the Active object framework and why you should use it in embedded programming here: https://www.state-machine.com/active-object
+The framework is inspired by the QP/C framework from Quantum Leaps - read more about the active object pattern and why you should use it in embedded programming here: https://www.state-machine.com/active-object
 
 ## Maintenance 
 
