@@ -14,14 +14,8 @@ typedef enum evtType
 {
   UNUSED = 0, // For asserts on uninitialized events of static storage class
   TIMEREVT,
-  MAX_SYSTEM_EVTTYPE,
   SIGNAL,
-  MESSAGE,
-  MAX_DIRECT_EVTTYPE,
-  PUBLISH,
-  SUBSCRIBE,
-  UNSUBSCRIBE,
-  MAX_PUBSUB_EVTTYPE,
+  MESSAGE
 } EvtType;
 
 /* The active object (actors) in the program */
@@ -38,8 +32,5 @@ typedef struct timerData Active_Timer;
 
 /* Memory pool type */
 typedef struct mempoolData Active_Mempool;
-
-/* Memory reference counter type for events */
-typedef /*_Atomic*/ uint8_t RefCnt;
 
 #endif /* ACTIVE_TYPES_H */
