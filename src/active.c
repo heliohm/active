@@ -38,7 +38,7 @@ void Active_eventLoop(Active *const me)
 
 int Active_post(Active const *const receiver, Event const *const e)
 {
-  ACTIVE_ASSERT(receiver != NULL || e->type > MAX_DIRECT_EVTTYPE, "Receiver active object is null for direct message");
+  ACTIVE_ASSERT(receiver != NULL, "Receiver is null");
   ACTIVE_ASSERT(e != NULL, "Event object is null");
   ACTIVE_ASSERT(e->type != UNUSED, "Event object is not initialized");
 
@@ -50,7 +50,7 @@ int Active_post(Active const *const receiver, Event const *const e)
   // NB: Pointer to pointer
   int status = Active_put(receiver->queue, &e);
 
-  // Message was not sent, remove memory ref again
+  // Event was not sent, remove memory ref again
   if (status != 0)
   {
     Active_mem_refdec(e);
