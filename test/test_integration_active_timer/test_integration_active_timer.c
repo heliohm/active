@@ -497,7 +497,7 @@ Event *msgExpFn(const TimeEvt *const te)
   writeBuf = (writeBuf == buf0) ? buf1 : buf0;
   writeBufIdx = 0;
 
-  // Return message for posting to receiver
+  // Return message for updating attached event and posting to receiver
   return EVT_UPCAST(msg);
 }
 
