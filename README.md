@@ -60,7 +60,7 @@ Usage examples are found in the examples/ folder. Select which example applicati
 Unit tests and integration tests are using Unity, setup through the PlatformIO IDE. 
 PlatformIO does not support boards (for running tests) on a native (e.g. x86) platform using Zephyr RTOS.
 
-To run tests, connect a target board and run `pio test` in a PlatformIO Terminal.
+To run tests, connect a target board and run `pio test -e test` in a PlatformIO Terminal.
 
 ## Usage
 
@@ -104,7 +104,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
     {
       case START_SIG:
       {
-        p->myData |= 1;
+        /* Do initialization work */
         break;
       }
       default:
@@ -118,7 +118,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
 void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td, uint32_t data)
 {
   Active_init(&(me->super), PingPong_dispatch, qd, td);
-  me->myData = data;
+  me->myData = data; /* Example private data structure */
 }
 ```
 
@@ -161,17 +161,44 @@ int main(void)
 
 After Active objects are initialized, they are ready to be started. When an Active object is started, its dispatch function will immediately receive a `Signal` event with value START_SIG.
 
-An Active object is typically either started by the `main()`function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `Active_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
+An Active object is typically either started by the `main()` function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `Active_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
+ 
+ ```C
+int main(void)
+{
+  PingPong_init(&ao_ping, &qdping, &tdping);
+  Active_start(ACTIVE_UPCAST(&ao_ping));
+  
+}
+
+````
+The `ACTIVE_UPCAST()` macro is a helper macro to upcast application active objects into their parent class to prevent compiler warnings.
 
 ### Process start event
 
 The START_SIG Signal will be the first event received by any active object. It is typically used to initialize data structures or state machines as needed or as a trigger to send the first application events.
 
+
+
 ### Creating events
 
-There are two ways of creating events for Active objects:
-- Statically allocated on the heap and initialized using the event's `_init` function
+There are three ways of creating events for Active objects:
+- Allocated on the heap and initialized using the event's `_init` function
+- Allocated in ROM (using const) or on the heap using the event's `_DEFINE` macro.
 - Dynamically allocated and initialized using the event's `_new` function
+
+The application must itself ensure static storage types or const type for events if needed.
+
+Interfaces and macros for statically allocated events are found in the `active_msg` header file. 
+Interfaces for dynamically allocated events are found in the `active_mem` header file.
+
+When choosing how to create events, it is important to know that an active object might not know when the event has been processed by all recipients. 
+Therefore, if a statically allocated event needs to be modified over time, dynamically allocated events are to be preferred to avoid race conditions when. These allow the application to fire-and-forget the events with automatic garbage collection when processing is done.
+
+### Creating events - memory pool sizing
+
+Memory pools for each event type are instanciated private to the the `active_mem` module. They are allocated compile-time, with pool sizes defined in `active_mem.h` (should be refactored).
+Pool sizes can be found through analyzing the application and monitoring the max usage of memory pools (TODO)
 
 ### Posting events
 
@@ -204,9 +231,10 @@ The free function can also be used to let application know that event is being f
 
 ## Roadmap
 
-- Complete refactoring framework and compiler ports into _port files
-- Add more usage examples
+- Complete refactoring framework and compiler ports into _port files (zephyr, gcc)
+- Make it possible to configure the library using an application header file (memory pools, asserts)
 - Review / refactor atomic accesses (e.g. memory references) using C11
+- Add more usage examples
 - Simplify extension of framework with application defined message types.
 - Dynamic payloads
 - Pub/sub support (TBD if broker-less or internal broker) with enum based topics to reduce ROM size
