@@ -18,6 +18,13 @@
                                           {.super = (Event){.type = SIGNAL, ._sender = NULL, ._dynamic = false}, \
                                            .sig = signal};
 
+#define MESSAGE_DEFINE(symbol, msgheader, msgpayloadptr, msgpayloadLen) Message symbol =                                                            \
+                                                                            {.super = (Event){.type = MESSAGE, ._sender = NULL, ._dynamic = false}, \
+                                                                             .header = msgheader,                                                   \
+                                                                             .payload = msgpayloadptr,                                              \
+                                                                             .payloadLen = psgpayloadLen};
+#warning add tests for this
+
 /******************************
  * Active object message types
  *****************************/
