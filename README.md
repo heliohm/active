@@ -12,6 +12,8 @@ A broad class of producer/consumer and reader/writer applications are well suite
 
 The Active framework can be used together with normal threads running in parallel.
 
+The framework is inspired by the QP/C framework from Quantum Leaps - read more about the Active object framework and why you should use it in embedded programming here: https://www.state-machine.com/active-object
+
 ## Maintenance 
 
 This repository should not be considered maintained. It is a hobby project for re-learning embedded programming.
@@ -19,16 +21,14 @@ Maintainers and pull requests are welcome.
 
 ## Functionality:
 
-- Thread abstration into separate Active objects - each object is running in its own thread
+- Thread abstration into separate Active objects - each object is running in its own thread with its own private data.
 - Event based architecture - all Active objects are blocking until they receive an event, which is then processed by the Active object's dispatch function
-- Active objects are not allowed to block in dispatch function, but must run to completion for each event processed.
 - Support for static allocation of events to ROM
 - Support for dynamic allocation of events and payloads through static memory pools with automatic garbage collection
 - Several event types - Signals (no arguments) and Messages (with header and pointer to payload)
 - Timed messages (one-shot and periodic) for timeouts, system wide ticks and data streaming
 - Direct message passing between objects
-- (Easily extensible with application defined message types.)
-- Future: MQTT-like Pub/Sub functionality with enum based topics to reduce ROM size
+
 
 ## Supported frameworks:
 - Zephyr RTOS
@@ -177,7 +177,11 @@ There are two ways of creating events for Active objects:
 
 ### Processing events
 
+Active objects should run to completion on every message processed with no to minimal blocking. Any blocking in an active object will introduce potential concurrency issues and block the object from processing new messages.
+
 ### Time events
+
+
 
 ### Usage rules - Dynamic events
 
@@ -202,18 +206,13 @@ The free function can also be used to let application know that event is being f
 
 - Complete refactoring framework and compiler ports into _port files
 - Add more usage examples
+- Review / refactor atomic accesses (e.g. memory references) using C11
+- Simplify extension of framework with application defined message types.
 - Dynamic payloads
-- Build pub/sub support (TBD if broker-less or internal broker)
-- Review / refactor atomic accesses (e.g. memory references)
+- Pub/sub support (TBD if broker-less or internal broker) with enum based topics to reduce ROM size
 - Considering: Service discovery for run-time boot strapping of application
-- Considering: Build support for Active object "bridges" with connection state to external interfaces (UART, Bluetooth Low Energy) supporting serialization
+- Considering: Build support for Active object "bridges" with connection state to external interfaces (UART, Bluetooth Low Energy) supporting serialization for "networked" message passing
 
-
-
-
-
-
-Active objects should run to completion on every message received
 
 ## License
 
