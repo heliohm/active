@@ -14,16 +14,15 @@
  * @brief Statically and initialize allocate a signal object with no sender information
  *
  */
-#define SIGNAL_DEFINE(symbol, signal) Signal symbol =                                                            \
-                                          {.super = (Event){.type = SIGNAL, ._sender = NULL, ._dynamic = false}, \
-                                           .sig = signal};
+#define SIGNAL_DEFINE(symbol, userSignal) Signal symbol =                                                            \
+                                              {.super = (Event){.type = SIGNAL, ._sender = NULL, ._dynamic = false}, \
+                                               .sig = userSignal};
 
 #define MESSAGE_DEFINE(symbol, msgheader, msgpayloadptr, msgpayloadLen) Message symbol =                                                            \
                                                                             {.super = (Event){.type = MESSAGE, ._sender = NULL, ._dynamic = false}, \
                                                                              .header = msgheader,                                                   \
                                                                              .payload = msgpayloadptr,                                              \
-                                                                             .payloadLen = psgpayloadLen};
-#warning add tests for this
+                                                                             .payloadLen = msgpayloadLen};
 
 /******************************
  * Active object message types
