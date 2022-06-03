@@ -40,7 +40,7 @@ void Active_TimeEvt_dispatch(TimeEvt *te);
  * @param te The time event that expired
  *
  * @return Pointer to event that will replace existing attached event. Existing attached dynamic events are freed.
- * @return NULL - Indicate to framework to keep the existing attached event.
+ * @return (Event*)NULL - Indicate to framework to keep the existing attached event.
  *
  */
 typedef Event *(*TimerExpiryHandler)(TimeEvt const *const te);
@@ -66,15 +66,16 @@ void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
  *  This routine stops a running time event.
  *  All dynamic time events and dynamic attached events will be freed by stopping the time event. (see header for more details)
  *
+ *  @param te pointer to the time event to stop
+ *
+ *  @return true: The timer was running when it was stopped.
+ *  @return false: The timer was already expired (one-shot) or already stopped.
+ *
  *  @warning Do not stop a one-shot dynamic timer event once it expired, as the time event and attached event will be freed.
  *    - Add an additional reference on it using Active_mem_refinc before starting and decrement it using Active_mem_refdec after stopping.
  *    - After expiry, only the time event pointer will be valid for stopping time event; the attached event will be freed.
  *  @warning Do not use dynamic timer event again after stopping it, as the time event and attached event will be freed.
  *  @warning Do not stop a timer event from an ISR.
- *  @param te pointer to the time event to stop
- *
- *  @return true: The timer was running when it was stopped.
- *  @return false: The timer was already expired (one-shot) or already stopped.
  **/
 bool Active_TimeEvt_stop(TimeEvt *te);
 
