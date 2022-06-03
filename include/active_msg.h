@@ -72,9 +72,9 @@ enum ReservedSignals
 };
 
 /**
- * @brief Initialize a signal structure before using it
+ * @brief Initialize a Signal structure before using it
  *
-   Do not call function with signal pointer to an object allocated with Signal_new
+ * Do not call function with signal pointer to an object allocated with Signal_new
  *
  * @param s Pointer to the statically allocated Signal structure to initialize
  * @param me The active object that will post the Signal
@@ -84,9 +84,26 @@ enum ReservedSignals
 void Signal_init(Signal *s, Active const *const me, uint16_t sig);
 
 /**
- * @brief Initialize a time event structure before using it
+ * @brief Initialize a Message structure before using it
  *
- * A time event will delay post and/or post periodically an attached event (i.e. a Signal) to the receiver.
+ * Do not call function with Message pointer to an object allocated with Message_new
+ *
+ * @param m Pointer to the statically allocated Message structure to initialize
+ * @param me The Active object that will post the Message
+ * @param header Application defined header
+ * @param payload Pointer to application defined message payload
+ * @param payloadLen Length of application defined message payload
+ *
+ * @warning The Active object does not know when a message is processed by receivers.
+ *          Take care of ensuring the payload data area is not modified until the application by design has ensured processing is done.
+ *
+ */
+void Message_init(Message *m, Active const *const me, uint16_t header, void *payload, uint16_t payloadLen);
+
+/**
+ * @brief Initialize a Time event structure before using it
+ *
+ *  Do not call function with time event pointer to an object allocated with TimeEvt_new
  *
  * @param te A pointer to the statically allocated time event structure to initialize
  * @param me The active object that will process the time event and post the attached event
@@ -95,7 +112,5 @@ void Signal_init(Signal *s, Active const *const me, uint16_t sig);
  * @param expFn Expiry function to that can update the attached event on timer expiry
  */
 void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Active const *const receiver, TimerExpiryHandler expFn);
-
-void Message_init(Message *m, Active const *const me, uint16_t header, void *payload, uint16_t payloadLen);
 
 #endif /* ACTIVE_MSG_H */
