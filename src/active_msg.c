@@ -17,8 +17,9 @@ static void Event_init(Event *const e, Active const *const me, EvtType t)
 }
 void Signal_init(Signal *s, Active const *const me, uint16_t sig)
 {
-  Event_init(EVT_UPCAST(s), me, SIGNAL);
   ACTIVE_ASSERT(sig >= (uint16_t)USER_SIG, "Signal type is invalid user defined signal");
+
+  Event_init(EVT_UPCAST(s), me, SIGNAL);
   s->sig = sig;
 }
 
