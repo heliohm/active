@@ -41,30 +41,37 @@ All framework and compiler specific code is found in active_port files for simpl
 The library make use of runtime "polymorphism" to represent Active objects and message types through function pointers and base
 classes (structs) for Events and Active objects.
 
-## Porting requirements:
+## Requirements:
 
+- A compiler using the C11 standard or later
+- A compiler supporting `__has_include` for letting an application configure the library in a separate active_config.h file. GCC and Clang has built-in support for this.
 - A queue implementation (Zephyr RTOS: Message queue)
+- A kernel supporting threads with priorities (Zephyr RTOS: Using k_thread)
 - A method to yield to other threads (Zephyr RTOS: Built-in blocking when pending on queue using K_FOREVER wait)
 - Memory allocation through fixed size static pools (Zephyr RTOS: Using memory slabs)
-- A kernel supporting threads with priorities (Zephyr RTOS: Using k_thread)
 - A timer/scheduler implementation for timed events (Zephyr RTOS: Using k_timer)
 
 ## Getting started
 
 The library project is set up as a PlatformIO project (https://platformio.org/) for building and testing.
-Install Visual Studio Code and the PlatformIO project before cloning the project.
 
 The project is set up using the STM32 NUCLEO L552ZE_Q board, using a custom board file located in the boards/ folder.
 Refer to PlatformIO documentation for how to change boards for testing Active as a standalone project.
 
 Usage examples are found in the examples/ folder. Select which example application to build together with framework in platformio.ini (build_src_filter)
 
+The library can be configured by an application through adding a custom `active_config.h` in the compiler search path to override default settings. 
+Available configuration settings and defaults are located in `active_config_loader.h`.
+
 ## Testing
 
 Unit tests and integration tests are using Unity, setup through the PlatformIO IDE. 
 PlatformIO does not support boards (for running tests) on a native (e.g. x86) platform using Zephyr RTOS.
 
-To run tests, connect a target board and run `pio test -e test` in a PlatformIO Terminal.
+To run tests:
+- Modify zephyr/prj.conf to include `CONFIG_NEWLIB_LIBC=y` (Zephyr and Unity use different LibC's)
+- Connect a target board
+- Run `pio test -e test` in a PlatformIO Terminal.
 
 ## Usage
 
