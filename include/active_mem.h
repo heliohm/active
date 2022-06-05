@@ -5,14 +5,10 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include <active_config_loader.h>
 #include <active_types.h>
 #include <active_msg.h>
 #include <active_timer.h>
-
-#define ACTIVE_MEM_NUM_TIMEREVT 3
-#define ACTIVE_MEM_NUM_SIGNALS 3
-#define ACTIVE_MEM_NUM_MESSAGES 2
-#define ACTIVE_MEM_NUM_OBJPOOLS 1
 
 /* Allocate and initialize new signal from the Active global signal memory pool */
 Signal *Signal_new(Active const *const me, uint16_t sig);
