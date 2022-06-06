@@ -52,13 +52,13 @@ void Active_TimeEvt_dispatch(TimeEvt *te)
         Active_mem_refdec(last_evt);
       }
     }
-
+    // Ensure not both initial attached event and return from expiry function was NULL
     ACTIVE_ASSERT(te->e != NULL, "Attached event is NULL");
   }
 
   Active_post(te->receiver, te->e);
 
-  /* One shot events: Remove initial ref for freeing once processed */
+  /* One shot events: Remove ref for freeing once posted */
   if (getTimerType(&(te->timer)) == ONESHOT)
   {
     Active_mem_refdec(te->e);
