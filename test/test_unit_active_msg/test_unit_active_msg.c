@@ -8,11 +8,6 @@ enum TestUserSignal
 
 SIGNAL_DEFINE(sm, TEST_SIG);
 
-const unsigned char payload[] = {0x1, 0x2, 0x3, 0x4};
-const unsigned char payloadLen = sizeof(payload) / sizeof(payload[0]);
-
-MESSAGE_DEFINE(mm, (uint16_t){0xBABA}, (void *)payload, payloadLen);
-
 void test_macro_signal()
 {
   TEST_ASSERT_EQUAL(sm.super.type, SIGNAL);
@@ -20,6 +15,11 @@ void test_macro_signal()
   TEST_ASSERT_FALSE(sm.super._dynamic);
   TEST_ASSERT_NULL(sm.super._sender);
 }
+
+const unsigned char payload[] = {0x1, 0x2, 0x3, 0x4};
+const unsigned char payloadLen = sizeof(payload) / sizeof(payload[0]);
+
+MESSAGE_DEFINE(mm, (uint16_t){0xBABA}, (void *)payload, payloadLen);
 
 void test_macro_message()
 {
