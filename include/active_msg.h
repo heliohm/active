@@ -5,7 +5,6 @@
 #include <stdint.h>
 
 #include <active_types.h>
-#include <active_mem.h>
 #include <active_timer.h>
 
 #define EVT_UPCAST(ptr) ((Event *)(ptr))

@@ -1,9 +1,12 @@
 #ifndef ACTIVE_TIMER_H
 #define ACTIVE_TIMER_H
 
+#include <stdbool.h>
 #include <stddef.h>
+
+#include <active_types.h>
 #include <active_port.h>
-#include <active_msg.h>
+
 /**
  * @brief Data structure for Active timer part of time events. Do not access members directly.
  *

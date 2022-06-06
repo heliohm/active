@@ -8,7 +8,6 @@
 
 #include <active_config_loader.h>
 #include <active_types.h>
-#include <active_msg.h>
 #include <active_timer.h>
 
 /* Allocate and initialize new signal from the Active global signal memory pool */
