@@ -2,7 +2,6 @@
 #define ACTIVE_PORT_H
 
 #include <active_types.h>
-#include <active_msg.h>
 
 /*******************************
  *  Compiler intrinsics
@@ -10,12 +9,6 @@
 
 #ifdef __GNUC__
 #define _PACKED_ __attribute__((packed))
-
-#define ATOMIC_ADD(ptr, inc) __sync_fetch_and_add(ptr, inc)
-#define ATOMIC_DEC(ptr, dec) __sync_fetch_and_sub(ptr, dec)
-#define ATOMIC_GET(ptr) __sync_fetch_and_add(ptr, 0)
-#define ATOMIC_SET_BOOL(ptr) __sync_fetch_and_or(ptr, (bool)true)
-#define ATOMIC_CLEAR_BOOL(ptr) __sync_fetch_and_and(ptr, (bool)false)
 
 #define _INLINE_ inline __attribute__((always_inline))
 

@@ -1,7 +1,7 @@
 #ifndef ACTIVE_TYPES_H
 #define ACTIVE_TYPES_H
 
-#include <stdint.h>
+#include <stdatomic.h>
 
 /* Base event for polymorphism of other objects */
 typedef struct event Event;
@@ -17,6 +17,9 @@ typedef enum evtType
   SIGNAL,
   MESSAGE
 } EvtType;
+
+/* Event memory reference count */
+typedef atomic_ushort refCnt_t;
 
 /* The active object (actors) in the program */
 typedef struct active Active;

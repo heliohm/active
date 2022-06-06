@@ -1,6 +1,7 @@
 #ifndef ACTIVE_MSG_H
 #define ACTIVE_MSG_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 #include <active_types.h>
@@ -34,7 +35,7 @@ struct event
 {
   Active *_sender;        // Sender of event
   EvtType type;           // Type of event
-  const atomic_t _refcnt; // Number of memory references for event
+  const refCnt_t _refcnt; // Number of memory references for event
   const bool _dynamic;    // Flag for memory management to know if event is dynamic or static
 };
 

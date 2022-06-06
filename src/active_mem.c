@@ -36,10 +36,8 @@ void Active_mem_refinc(const Event *e)
 {
   if (Active_mem_isDynamic(e))
   {
-    // ATOMIC_ADD((RefCnt *)&e->_refcnt, 1);
-    atomic_add((atomic_t *)&(e->_refcnt), 1);
-    // ACTIVE_ASSERT(ATOMIC_GET((RefCnt *)&(e->_refcnt)) != 0, "Overflow in reference counter. Event ptr: %p", (void *)e);
-    ACTIVE_ASSERT(atomic_get(&(e->_refcnt)) != 0, "Overflow in reference counter. Event ptr: %p", (void *)e);
+    atomic_fetch_add((refCnt_t *)&(e->_refcnt), 1);
+    ACTIVE_ASSERT(atomic_load(&(e->_refcnt)) != 0, "Overflow in reference counter. Event ptr: %p", (void *)e);
   }
 }
 
@@ -47,23 +45,15 @@ void Active_mem_refdec(const Event *e)
 {
   if (Active_mem_isDynamic(e))
   {
-    // ACTIVE_ASSERT(ATOMIC_GET((RefCnt *)&(e->_refcnt)) > 0, "Underflow in reference counter. Event ptr: %p", (void *)e);
-    ACTIVE_ASSERT(atomic_get(&(e->_refcnt)) > 0, "Underflow in reference counter. Event ptr: %p", (void *)e);
-    // ATOMIC_DEC((RefCnt *)&(e->_refcnt), 1);
-    atomic_dec((atomic_t *)&(e->_refcnt));
-
+    ACTIVE_ASSERT(atomic_load(&(e->_refcnt)) > 0, "Underflow in reference counter. Event ptr: %p", (void *)e);
+    atomic_fetch_sub((refCnt_t *)&(e->_refcnt), 1);
     Active_mem_gc(e);
   }
 }
 
-/* RefCnt Active_mem_getRefCount(const Event *const e)
+refCnt_t Active_mem_getRefCount(const Event *const e)
 {
-  return e->_refcnt;
-}
-*/
-atomic_t Active_mem_getRefCount(const Event *const e)
-{
-  return atomic_get(&e->_refcnt);
+  return atomic_load(&e->_refcnt);
 }
 
 static void Active_mem_setDynamic(const Event *const e)
@@ -72,11 +62,7 @@ static void Active_mem_setDynamic(const Event *const e)
   bool *dyn = (bool *)&(e->_dynamic);
   *dyn = true;
 
-  // Cast away const, set ref counter to 0
-  // RefCnt *ref = (RefCnt *)&(e->_refcnt);
-  // *ref = 0;
-  atomic_t *ref = (atomic_t *)&e->_refcnt;
-  atomic_clear(ref);
+  atomic_init((refCnt_t *)&(e->_refcnt), 0);
 }
 
 void Active_mem_gc(const Event *e)
@@ -132,7 +118,7 @@ Signal *Signal_new(Active const *const me, uint16_t sig)
   ARG_UNUSED(status);
   return s;
 }
-ACTIVE_CASSERT(sizeof(Signal) == 20, "Signal type is not the right size.");
+ACTIVE_CASSERT(sizeof(Signal) == 16, "Signal type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(Signal) == 4, "Alignment Signal type");
 
 Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen)
@@ -150,7 +136,7 @@ Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayloa
   ARG_UNUSED(status);
   return m;
 }
-ACTIVE_CASSERT(sizeof(Message) == 24, "Message type is not the right size.");
+ACTIVE_CASSERT(sizeof(Message) == 20, "Message type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(Message) == 4, "Alignment Message type");
 
 // Event to fire on one-shot or periodic timer. For Pub-Sub messages, receiver should be set to NULL.
@@ -169,7 +155,7 @@ TimeEvt *TimeEvt_new(Event *const e, const Active *const me, const Active *const
   ARG_UNUSED(status);
   return te;
 }
-ACTIVE_CASSERT(sizeof(TimeEvt) == 100, "TimeEvt type is not the right size.");
+ACTIVE_CASSERT(sizeof(TimeEvt) == 96, "TimeEvt type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(TimeEvt) == 4, "Alignment TimeEvt type");
 
 Active_Mempool *Active_Mempool_new(void *memBuf, size_t objSize, size_t numObjects)

@@ -1,6 +1,7 @@
 #ifndef ACTIVE_MEM_H
 #define ACTIVE_MEM_H
 
+#include <stdatomic.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -32,7 +33,7 @@ void Active_mem_refinc(const Event *e);
 void Active_mem_refdec(const Event *e);
 
 /* @internal - used by Active framework tests */
-atomic_t Active_mem_getRefCount(const Event *const e);
+refCnt_t Active_mem_getRefCount(const Event *const e);
 /* @internal - used by Active framework tests */
 uint32_t Active_mem_Signal_getUsed();
 /* @internal - used by Active framework tests */

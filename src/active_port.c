@@ -9,7 +9,7 @@ https://docs.zephyrproject.org/latest/reference/kernel/data_passing/message_queu
 
 ACTIVE_CASSERT(ALIGNOF(Event *) == 4, "Alignment Event pointer type");
 
-ACTIVE_CASSERT(sizeof(Event) == 16, "Event type is not the right size.");
+ACTIVE_CASSERT(sizeof(Event) == 12, "Event type is not the right size.");
 ACTIVE_CASSERT(ALIGNOF(Event) == 4, "Alignment Event type");
 
 /* Zephyr thread entry function */
