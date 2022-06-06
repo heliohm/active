@@ -2,15 +2,26 @@
 
 #ifdef __ZEPHYR__
 
+#include <stdalign.h>
 #include <zephyr.h>
 
 /* Zephyr puts limits on aligment of queue buffer and size of queue content (Event *):
 https://docs.zephyrproject.org/latest/reference/kernel/data_passing/message_queues.html */
 
-ACTIVE_CASSERT(ALIGNOF(Event *) == 4, "Alignment Event pointer type");
-
 ACTIVE_CASSERT(sizeof(Event) == 12, "Event type is not the right size.");
-ACTIVE_CASSERT(ALIGNOF(Event) == 4, "Alignment Event type");
+ACTIVE_CASSERT(alignof(Event *) == 4, "Alignment of Event pointer type must be a power of 2");
+
+/* Zephyr limitations on memory slab alignment and object size:
+https://docs.zephyrproject.org/latest/kernel/memory_management/slabs.html */
+
+ACTIVE_CASSERT(sizeof(TimeEvt) == 96, "TimeEvt type is not the right size.");
+ACTIVE_CASSERT(alignof(TimeEvt) == 8, "Alignment TimeEvt type");
+
+ACTIVE_CASSERT(sizeof(Message) == 20, "Message type is not the right size.");
+ACTIVE_CASSERT(alignof(Message) == 4, "Alignment Message type");
+
+ACTIVE_CASSERT(sizeof(Signal) == 16, "Signal type is not the right size.");
+ACTIVE_CASSERT(alignof(Signal) == 4, "Alignment Signal type");
 
 /* Zephyr thread entry function */
 static void active_entry(void *arg1, void *arg2, void *arg3)

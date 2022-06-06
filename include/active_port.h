@@ -1,6 +1,8 @@
 #ifndef ACTIVE_PORT_H
 #define ACTIVE_PORT_H
 
+#include <stdalign.h>
+
 #include <active_types.h>
 
 /*******************************
@@ -11,9 +13,6 @@
 #define _PACKED_ __attribute__((packed))
 
 #define _INLINE_ inline __attribute__((always_inline))
-
-#define ALIGNAS(n) __attribute__((aligned(n)))
-#define ALIGNOF(sym) __alignof__(sym)
 
 #else
 #error "No supported compiler found"
@@ -40,7 +39,7 @@
 #define ACTIVE_QPTR(qPtrSym) struct k_msgq *qPtrSym
 
 /* Declare a message queue buffer with name bufName and room for maxMsg messages */
-#define ACTIVE_QBUF(bufSym, maxMsg) char ALIGNAS(ALIGNOF(Event *)) bufSym[sizeof(Event *) * maxMsg]
+#define ACTIVE_QBUF(bufSym, maxMsg) char alignas(alignof(Event *)) bufSym[sizeof(Event *) * maxMsg]
 
 /* Zephyr implementation of threads */
 
@@ -64,11 +63,18 @@
 /* Declare a timer instance */
 #define ACTIVE_TIMER(timerSym) struct k_timer timerSym
 
-/* Declare and initialize a memory pool */
-#define ACTIVE_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, ALIGNOF(type))
+/* Declare and initialize a static memory pool */
+#define ACTIVE_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, alignof(type))
 
 /* Declare a memory pool */
 #define ACTIVE_MEMPOOL(memPoolSym) struct k_mem_slab memPoolSym;
+
+#define ACTIVE_MEMPOOL_NUM_USED(memPoolPtr) (memPoolPtr)->num_used
+
+#define ACTIVE_MEMPOOL_ALLOC(memPoolPtr, dataPptr) k_mem_slab_alloc(memPoolPtr, (void *)dataPptr, K_NO_WAIT)
+#define ACTIVE_MEMPOOL_FREE(memPoolPtr, dataPptr) k_mem_slab_free(memPoolPtr, (void *)dataPptr)
+
+#define ACTIVE_MEMPOOL_ALLOC_SUCCESS_STATUS 0
 
 /*******************************
  *  Platform specific functions

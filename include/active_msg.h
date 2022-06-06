@@ -42,23 +42,23 @@ struct event
 struct timeevt
 {
   Event super;              // Sender and type (for delegation) and memory tracking
-  Event const *e;           // Attached event to send on expiry
-  Active const *receiver;   // AO to send message to if sending a direct message
+  const Event *e;           // Attached event to send on expiry
+  const Active *receiver;   // AO to send message to if sending a direct message
   TimerExpiryHandler expFn; // Expiry function to let AO replace attached event at timer expiry
   Active_Timer timer;       // Timer instance belonging to time event
-} _PACKED_ ALIGNAS(4);
+};
 
 /* Signals active objects that something has happened. Takes no parameters */
 struct signal
 {
-  Event super;
+  const Event super;
   uint16_t sig;
 };
 
 /* Generic message type consisting of header, payload and payload length */
 struct message
 {
-  Event super;
+  const Event super;
   void *payload;
   uint16_t header;
   uint16_t payloadLen;
