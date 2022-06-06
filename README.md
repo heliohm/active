@@ -49,7 +49,7 @@ classes (structs) for Events and Active objects.
 - A kernel supporting threads with priorities (Zephyr RTOS: Using k_thread)
 - A method to yield to other threads (Zephyr RTOS: Built-in blocking when pending on queue using K_FOREVER wait)
 - Memory allocation through fixed size static pools (Zephyr RTOS: Using memory slabs)
-- A timer/scheduler implementation for timed events (Zephyr RTOS: Using k_timer)
+- A timer/scheduler implementation with expiry function and user data support for timed events (Zephyr RTOS: Using k_timer)
 
 ## Getting started
 
