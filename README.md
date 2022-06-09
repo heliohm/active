@@ -317,7 +317,7 @@ The free function can also be used to let application know that event is being f
 - Complete refactoring framework and compiler ports into _port files (zephyr, gcc)
 - Make it possible to configure the library using an application header file (memory pools, asserts)
 - Make max usage of AO queues available to the application
-- Review / refactor atomic accesses (e.g. memory references) using C11
+- Review atomic accesses (e.g. memory references) 
 - Add more usage examples
 - Simplify extension of framework with application defined message types.
 - Dynamic payloads
