@@ -71,6 +71,7 @@ PlatformIO does not support boards (for running tests) on a native (e.g. x86) pl
 To run tests:
 - Modify zephyr/prj.conf to include `CONFIG_NEWLIB_LIBC=y` (Zephyr and Unity use different LibC's)
 - Connect a target board
+- Find your board's serial device (`ls /dev/tty*`) and update the `monitor_port`field in platformio.ini
 - Run `pio test -e test` in a PlatformIO Terminal.
 
 ## Usage
@@ -281,12 +282,34 @@ The lifetime of an event should be assumed to be only while processing it in the
 If the Active object for some reason needs to retain the event, it can extend the lifetime of it in the following ways:
 - Post the received event again to itself in the dispatch function
 - Post the received event again to itself as an attached event of a time event.
-- Add a manual memory reference to the received using `Active_mem_refinc`. Take care to decrement the reference again later using `Active_mem_refdec` to ensure event is freed correctly.
+- Add a manual memory reference to the received event using `Active_mem_refinc`. Take care to decrement the reference again later using `Active_mem_refdec` to ensure event is freed correctly.
 
 Forwarding an event to other active objects is allowed. When re-posting inside the dispatch function, Active's memory management will ensure the event is not freed prematurely.
 
 ### Time events
 
+A Time event is a special event type used for posting normal events at a later time, either as a one-shot event or as a periodic event. 
+
+Typical use cases for Time events are:
+- Having a Active object create a timeout Signal event to oneself while waiting for input in a state machine
+- Creating periodic system ticks for one or more Active objects using a Signal or Message event.
+- Streaming data (e.g. double buffering) between two Active objects (producer / consumer) using a Message event with dynamic payloads
+
+Creating a time event takes the following arguments:
+- An attached `Event *` that will be posted at timer expiry (one shot or periodic)
+- The Active object `sender`, which is used for posting the event in the senders context (thread) at timer expiry
+- The Active object `receiver`, which will receive the attached event
+- An application defined expiry function that can be used to set or replace the attached event before it is being posted at expiry.
+
+Time events can either be declared statically in the application and initialized by `TimeEvt_init` or created dynamically by `TimeEvt_new`.
+The application can freely mix dynamic and static events between the time event and attached event.
+
+A Time event is started by calling `Active_TimeEvt_start`, with arguments in milliseconds for initial expiry and subsequent timeouts for periodic expiry.
+The timer implementations typically guarantee that *at least* the time given as argument has passed. Asynchronous messaging cannot in itself guarantee that an exact amount of time has passed at processing time.
+
+When starting a time event, the underlying framework's timer implementation will be started. At expiry, the Active framework posts the time event itself back to the sender in an ISR context. Then, the Active object will process the Time event in its own context/thread, call the expiry function if set and then post the attached event to the receiver.
+
+To stop a one shot Time event before expiry or to stop a running periodic Time event, the `Active_TimeEvt_stop` is used.
 
 
 ### Usage rules - Dynamic events
@@ -297,6 +320,8 @@ If a dynamic event is to be posted multiple times, the Active object needs to se
 Dynamic events should be considered immutable by the sender Active object once posted, as the receiving object might preempt the sender at any time.
 
 When using time events, any dynamic time events or attached dynamic events will be freed when the timer expires (one shot) or when the timer is stopped by the application, which ever comes first. 
+
+Since there is no guarantee for the Active object to know when a one shot Time event expired and was freed, an application must add its own memory reference to the Time event before starting it (and remove after stopping) if there is a need to stop a dynamic one-shot Time event. 
 
 Periodic events using dynamic attached events can register an expiry function to replace the attached event on an expiration. Previously attached events will be then freed once there are no more references to it.
 
@@ -315,7 +340,8 @@ The free function can also be used to let application know that event is being f
 ## Ideas Roadmap
 
 - Complete refactoring framework and compiler ports into _port files (zephyr, gcc)
-- Make it possible to configure the library using an application header file (memory pools, asserts)
+- Make it possible to configure the library using an application header file (asserts)
+- Improving asserts (assert levels, test coverage w/o asserts, ROM size usage (create LUT for file / line / message))
 - Make max usage of AO queues available to the application
 - Review atomic accesses (e.g. memory references) 
 - Add more usage examples
