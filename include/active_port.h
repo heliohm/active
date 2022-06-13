@@ -10,10 +10,6 @@
  ******************************/
 
 #ifdef __GNUC__
-#define _PACKED_ __attribute__((packed))
-
-#define _INLINE_ inline __attribute__((always_inline))
-
 #else
 #error "No supported compiler found"
 #endif /* __GNUC__ */
@@ -27,78 +23,123 @@
 #ifdef __ZEPHYR__
 
 /* Zephyr implemtation of asserts */
-#define ACTIVE_ASSERT(test, errMsg, ...) __ASSERT(test, errMsg, ##__VA_ARGS__) // Runtime assert
-#define ACTIVE_CASSERT(test, errMsg) BUILD_ASSERT(test, errMsg)                // Compile time assert
+#define ACTP_ASSERT(test, errMsg, ...) __ASSERT(test, errMsg, ##__VA_ARGS__) // Runtime assert
+#define ACT_CASSERT(test, errMsg) BUILD_ASSERT(test, errMsg)                 // Compile time assert
 
-/* Zephyr implementation of queues */
+/**
+ * @brief Zephyr RTOS port of a queue used by the Active framework
+ *
+ */
 
-/* Declare a message queue with name qSym */
-#define ACTIVE_Q(qSym) struct k_msgq qSym
+/* Declare a  message queue with name qSym.
+Used by application to set up a queue */
+#define ACTP_Q(qSym) struct k_msgq qSym
 
-/* Declare a message queue pointer with name qPtrSym. Used by generic active header file */
-#define ACTIVE_QPTR(qPtrSym) struct k_msgq *qPtrSym
+/* @internal - Declare a pointer to a message queue with name qPtrSym. Used by generic active header file */
+#define ACTP_QPTR(qPtrSym) struct k_msgq *qPtrSym
 
-/* Declare a message queue buffer with name bufName and room for maxMsg messages */
-#define ACTIVE_QBUF(bufSym, maxMsg) char alignas(alignof(Event *)) bufSym[sizeof(Event *) * maxMsg]
+/* Declare a message queue buffer with name bufName and room for maxMsg messages.
+Used by application to set up a buffer for the queue */
+#define ACTP_QBUF(bufSym, maxMsg) char alignas(alignof(Event *)) bufSym[sizeof(Event *) * maxMsg]
 
-/* Zephyr implementation of threads */
+/**
+ * @brief Zephyr RTOS port of threads used by the Active framework
+ *
+ */
 
-/* Declare a thread handler object */
-#define ACTIVE_THREAD(threadSym) struct k_thread threadSym
-/* Declare a pointer to thread handler. Used by generic active header file */
-#define ACTIVE_THREADPTR(threadPtrSym) k_tid_t threadPtrSym
-/* Declare a thread stack */
-#define ACTIVE_THREAD_STACK(stackSym, size) K_THREAD_STACK_DEFINE(stackSym, size)
-/* Declare a thread stack pointer */
-#define ACTIVE_THREAD_STACKPTR(stackPtrSym) k_thread_stack_t *stackPtrSym;
+/* Declare a thread
+Used by the application to set up a thread for the active object */
+#define ACTP_THREAD(threadSym) struct k_thread threadSym
+
+/* @internal - Declare a pointer to thread handler. Used by generic active header file */
+#define ACTP_THREADPTR(threadPtrSym) k_tid_t threadPtrSym
+
+/* Declare *and* initialize a thread stack.
+Used by the application to set up a stack for the active object thread */
+#define ACTP_THREAD_STACK_DEFINE(stackSym, size) K_THREAD_STACK_DEFINE(stackSym, size)
+
+/* @internal - Declare a thread stack pointer */
+#define ACTP_THREAD_STACKPTR(stackPtrSym) k_thread_stack_t *stackPtrSym;
 
 /* Declares a size_t type with name stackSizeSym and initialize with the size of the thread stack.
-   Must point to the stack array directly.
+   stackSym must point to the stack array directly.
+
+   Used by the application to calculate the true stack size (excl overhead)
  */
-#define ACTIVE_THREAD_STACK_SIZE(stackSizeSym, stackSym) const size_t stackSizeSym = K_THREAD_STACK_SIZEOF(stackSym)
+#define ACTP_THREAD_STACK_SIZE(stackSizeSym, stackSym) const size_t stackSizeSym = K_THREAD_STACK_SIZEOF(stackSym)
 
-/* Zephyr thread priorities. Higher number -> lower pri. Main thread has pri 0. Non-negative numbers are preemptive threads */
-#define ACTIVE_THREAD_PRI(x) (x)
+/* Returns a thread priority. Higher number -> lower pri in Zephyr.
+Main thread has defauly pri 0. Non-negative numbers are preemptive threads
+https://docs.zephyrproject.org/latest/kernel/services/threads/index.html#thread-priorities */
+#define ACTP_THREAD_PRI(x) (x)
 
-/* Declare a timer instance */
-#define ACTIVE_TIMER(timerSym) struct k_timer timerSym
+/**
+ * @brief Zephyr RTOS port of a timer
+ *
+ */
 
-/* Declare and initialize a static memory pool */
-#define ACTIVE_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, alignof(type))
+/* @internal - Declare a timer. Used by Time events */
+#define ACTP_TIMER(timerSym) struct k_timer timerSym
+
+/* @internal - Declare a pointer to a timer */
+#define ACTP_TIMERPTR(timerPtrSym) struct k_timer *timerPtrSym
+
+/* @internal - Initialize an ACT_Timer struct */
+#define ACTP_TIMER_INIT(timerPtr, expiryFn) k_timer_init(&(timerPtr->impl), expiryFn, NULL)
+
+/* @internal - Set ACT_Timer application defined parameter */
+#define ACTP_TIMER_PARAM_SET(timerPtr, param) k_timer_user_data_set(&(timerPtr->impl), (void *)param)
+/* @internal - Get application defined parameter from native (port) timer. */
+#define ACTP_TIMER_PARAM_GET(nativeTimerPtr) k_timer_user_data_get(nativeTimerPtr)
+
+/* @internal - Start ACT_Timer */
+#define ACTP_TIMER_START(timerPtr, durationMs, periodMs) k_timer_start(&(timerPtr->impl), K_MSEC(durationMs), K_MSEC(periodMs))
+/* @internal - Stop ACT_Timer */
+#define ACTP_TIMER_STOP(timerPtr) k_timer_stop(&(timerPtr->impl));
+
+/**
+ * @brief Zepphyr RTOS port of a memory pool with fixed size objects
+ *
+ */
+
+/* @internal  - Declare *and* initialize a static memory pool */
+#define ACTP_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, alignof(type))
+
+/* @internal - Get number of used entries in memory pool. Used for testing */
+#define ACTP_MEMPOOL_USED_GET(memPoolPtr) (memPoolPtr)->num_used
+
+/* @internal - Allocate memory for an object from a specified memory pool */
+#define ACTP_MEMPOOL_ALLOC(memPoolPtr, dataPptr) k_mem_slab_alloc(memPoolPtr, (void *)dataPptr, K_NO_WAIT)
+/* @internal - Free memory for an object from a specified memory pool */
+#define ACTP_MEMPOOL_FREE(memPoolPtr, dataPptr) k_mem_slab_free(memPoolPtr, (void *)dataPptr)
+/* @internal - Allocation return status on success */
+#define ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS 0
 
 /* Declare a memory pool */
-#define ACTIVE_MEMPOOL(memPoolSym) struct k_mem_slab memPoolSym;
-
-#define ACTIVE_MEMPOOL_NUM_USED(memPoolPtr) (memPoolPtr)->num_used
-
-#define ACTIVE_MEMPOOL_ALLOC(memPoolPtr, dataPptr) k_mem_slab_alloc(memPoolPtr, (void *)dataPptr, K_NO_WAIT)
-#define ACTIVE_MEMPOOL_FREE(memPoolPtr, dataPptr) k_mem_slab_free(memPoolPtr, (void *)dataPptr)
-
-#define ACTIVE_MEMPOOL_ALLOC_SUCCESS_STATUS 0
+// #define ACTP_MEMPOOL(memPoolSym) struct k_mem_slab memPoolSym;
 
 /*******************************
  *  Platform specific functions
  **************************** */
 
 /* Thread safe port for pending on the queue until a message is received */
-static _INLINE_ void Active_get(void const *qPtr, Event **e)
+static inline void ACTP_get(void const *qPtr, Event **e)
 {
 
   int status = k_msgq_get((struct k_msgq *)qPtr, e, K_FOREVER);
-  ACTIVE_ASSERT(status == 0, "Event was not retrieved. Error: %i", status);
+  ACTP_ASSERT(status == 0, "Event was not retrieved. Error: %i", status);
 
   ARG_UNUSED(status);
 }
 
 /* Thread safe port for putting event pointers on the receiving queue */
-static _INLINE_ int Active_put(void const *qPtr, Event const *const *const e)
+static inline int ACTP_put(void const *qPtr, Event const *const *const e)
 {
   int status = k_msgq_put((struct k_msgq *)qPtr, e, K_NO_WAIT);
 
-  // TODO: Tracing - log k_msgq_numfree_get
+  ACTP_ASSERT(status == 0, "Event not put on queue %p. Error: %i\n\n", qPtr, status);
 
-  ACTIVE_ASSERT(status == 0, "Event not put on queue %p. Error: %i\n\n", qPtr, status);
-
+  ARG_UNUSED(status);
   return status;
 }
 

@@ -10,11 +10,11 @@
 PingPong ao_ping, ao_pong;
 
 /* Ping Active Object */
-ACTIVE_QBUF(pingQbuf, 10);
-ACTIVE_Q(pingQ);
-ACTIVE_THREAD(pingT);
-ACTIVE_THREAD_STACK(pingStack, 512);
-ACTIVE_THREAD_STACK_SIZE(pingStackSz, pingStack);
+ACTP_QBUF(pingQbuf, 10);
+ACTP_Q(pingQ);
+ACTP_THREAD(pingT);
+ACTP_THREAD_STACK_DEFINE(pingStack, 512);
+ACTP_THREAD_STACK_SIZE(pingStackSz, pingStack);
 
 const static queueData qdping = {.maxMsg = 10,
                                  .queBuf = pingQbuf,
@@ -26,11 +26,11 @@ const static threadData tdping = {.thread = &pingT,
                                   .stack_size = pingStackSz};
 
 /* Pong Active Object */
-ACTIVE_QBUF(pongQbuf, 10);
-ACTIVE_Q(pongQ);
-ACTIVE_THREAD(pongT);
-ACTIVE_THREAD_STACK(pongStack, 512);
-ACTIVE_THREAD_STACK_SIZE(pongStackSz, pongStack);
+ACTP_QBUF(pongQbuf, 10);
+ACTP_Q(pongQ);
+ACTP_THREAD(pongT);
+ACTP_THREAD_STACK_DEFINE(pongStack, 512);
+ACTP_THREAD_STACK_SIZE(pongStackSz, pongStack);
 
 const static queueData qdpong = {.maxMsg = 10,
                                  .queBuf = pongQbuf,
@@ -42,11 +42,11 @@ const static threadData tdpong = {.thread = &pongT,
                                   .stack_size = pongStackSz};
 
 /* Global signals */
-const Signal pingSignal = {.super = {.type = SIGNAL, ._sender = ACTIVE_UPCAST(&ao_pong), ._dynamic = false}, .sig = PING};
-const Signal pongSignal = {.super = {.type = SIGNAL, ._sender = ACTIVE_UPCAST(&ao_ping), ._dynamic = false}, .sig = PONG};
+const Signal pingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = PING};
+const Signal pongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = PONG};
 
-const Signal timPingSignal = {.super = {.type = SIGNAL, ._sender = ACTIVE_UPCAST(&ao_pong), ._dynamic = false}, .sig = TIMEPING};
-const Signal timPongSignal = {.super = {.type = SIGNAL, ._sender = ACTIVE_UPCAST(&ao_ping), ._dynamic = false}, .sig = TIMEPONG};
+const Signal timPingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = TIMEPING};
+const Signal timPongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = TIMEPONG};
 
 Event *expiryFn(TimeEvt const *const te)
 {
@@ -61,41 +61,41 @@ Event *expiryFn(TimeEvt const *const te)
 int main(void)
 {
 
-  Signal *s = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
-  Signal *s2 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
-  Signal *s3 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
+  Signal *s = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  Signal *s2 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  Signal *s3 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
 
   PingPong_init(&ao_ping, &qdping, &tdping);
-  Active_start(ACTIVE_UPCAST(&ao_ping));
+  ACTP_start(ACT_UPCAST(&ao_ping));
 
   PingPong_init(&ao_pong, &qdpong, &tdpong);
-  Active_start(ACTIVE_UPCAST(&ao_pong));
+  ACTP_start(ACT_UPCAST(&ao_pong));
 
-  Active_post(ACTIVE_UPCAST(&ao_ping), EVT_UPCAST(&pingSignal));
-  Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s));
-  Active_post(ACTIVE_UPCAST(&ao_ping), EVT_UPCAST(s2));
-  Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s3));
+  ACT_post(ACT_UPCAST(&ao_ping), EVT_UPCAST(&pingSignal));
+  ACT_post(ACT_UPCAST(&ao_pong), EVT_UPCAST(s));
+  ACT_post(ACT_UPCAST(&ao_ping), EVT_UPCAST(s2));
+  ACT_post(ACT_UPCAST(&ao_pong), EVT_UPCAST(s3));
 
   // Wait until all some messages are freed (PingPong waits 1sec per msg)
   k_msleep(500);
 
-  s = Signal_new(ACTIVE_UPCAST(&ao_ping), PING);
-  s2 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
-  s3 = Signal_new(ACTIVE_UPCAST(&ao_pong), PINGPONG);
+  s = Signal_new(ACT_UPCAST(&ao_ping), PING);
+  s2 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  s3 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
 
-  Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s));
-  Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s2));
-  Active_post(ACTIVE_UPCAST(&ao_pong), EVT_UPCAST(s3));
+  ACT_post(ACT_UPCAST(&ao_pong), EVT_UPCAST(s));
+  ACT_post(ACT_UPCAST(&ao_pong), EVT_UPCAST(s2));
+  ACT_post(ACT_UPCAST(&ao_pong), EVT_UPCAST(s3));
 
   k_msleep(500);
 
-  s = Signal_new(ACTIVE_UPCAST(&ao_ping), PING);
+  s = Signal_new(ACT_UPCAST(&ao_ping), PING);
 
-  TimeEvt *te = TimeEvt_new(EVT_UPCAST(s), ACTIVE_UPCAST(&ao_ping), ACTIVE_UPCAST(&ao_pong), expiryFn);
-  Active_TimeEvt_start(te, 200, 200);
+  TimeEvt *te = TimeEvt_new(EVT_UPCAST(s), ACT_UPCAST(&ao_ping), ACT_UPCAST(&ao_pong), expiryFn);
+  ACT_TimeEvt_start(te, 200, 200);
 
   k_msleep(1000);
-  Active_TimeEvt_stop(te);
+  ACT_TimeEvt_stop(te);
   k_msleep(1000);
 
   k_sleep(K_FOREVER);

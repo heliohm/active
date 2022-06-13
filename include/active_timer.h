@@ -13,7 +13,7 @@
  */
 struct timerData
 {
-  ACTIVE_TIMER(impl);
+  ACTP_TIMER(impl);
   size_t durationMs;
   size_t periodMs;
   volatile bool running;
@@ -25,13 +25,13 @@ struct timerData
  *
  * @param te
  */
-void Active_Timer_init(TimeEvt *te);
+void ACT_Timer_init(TimeEvt *te);
 
 /**
  * @brief Internal: Callback to process time events. Must not be used by application.
  * Used by Active framework to process expired time events and post attached events.
  */
-void Active_TimeEvt_dispatch(TimeEvt *te);
+void ACT_TimeEvt_dispatch(TimeEvt *te);
 
 /**
  * @brief Time event expiry function prototype.
@@ -61,7 +61,7 @@ typedef Event *(*TimerExpiryHandler)(TimeEvt const *const te);
  *
  * @warning Do not call function with a dynamic time event pointer that is previously stopped or expired, as those are freed.
  */
-void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
+void ACT_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
 
 /**
  *  @brief Stop a time event
@@ -75,11 +75,11 @@ void Active_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
  *  @return false: The timer was already expired (one-shot) or already stopped.
  *
  *  @warning Do not stop a one-shot dynamic timer event once it expired, as the time event and attached event will be freed.
- *    - Add an additional reference on it using Active_mem_refinc before starting and decrement it using Active_mem_refdec after stopping.
+ *    - Add an additional reference on it using ACT_mem_refinc before starting and decrement it using ACT_mem_refdec after stopping.
  *    - After expiry, only the time event pointer will be valid for stopping time event; the attached event will be freed.
  *  @warning Do not use dynamic timer event again after stopping it, as the time event and attached event will be freed.
  *  @warning Do not stop a timer event from an ISR.
  **/
-bool Active_TimeEvt_stop(TimeEvt *te);
+bool ACT_TimeEvt_stop(TimeEvt *te);
 
 #endif /* ACTIVE_TIMER_H */

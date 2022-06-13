@@ -27,7 +27,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
       printk("%p received Ping from %p!\n\n", me, e->_sender);
       if (e->_sender)
       {
-        Active_post(e->_sender, EVT_UPCAST(&pongSignal));
+        ACT_post(e->_sender, EVT_UPCAST(&pongSignal));
       }
       break;
     }
@@ -36,7 +36,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
       printk("%p received Pong from %p!\n\n", me, e->_sender);
       if (e->_sender)
       {
-        Active_post(e->_sender, EVT_UPCAST(&pingSignal));
+        ACT_post(e->_sender, EVT_UPCAST(&pingSignal));
       }
       break;
     }
@@ -67,5 +67,5 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
 
 void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td)
 {
-  Active_init(&(me->super), PingPong_dispatch, qd, td);
+  ACTP_init(&(me->super), PingPong_dispatch, qd, td);
 }

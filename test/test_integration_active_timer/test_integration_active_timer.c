@@ -1,11 +1,11 @@
 #include <active.h>
 #include <unity.h>
 
-static ACTIVE_QBUF(testQBuf, 1);
-static ACTIVE_Q(testQ);
-static ACTIVE_THREAD(testT);
-static ACTIVE_THREAD_STACK(testTStack, 512);
-static ACTIVE_THREAD_STACK_SIZE(testTStackSz, testTStack);
+static ACTP_QBUF(testQBuf, 1);
+static ACTP_Q(testQ);
+static ACTP_THREAD(testT);
+static ACTP_THREAD_STACK_DEFINE(testTStack, 512);
+static ACTP_THREAD_STACK_SIZE(testTStackSz, testTStack);
 
 const static queueData qdtest = {.maxMsg = 1,
                                  .queBuf = testQBuf,
@@ -88,13 +88,13 @@ static void test_function_timer_static_oneshot_startstop()
 
   TimeEvt te;
   TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
-  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   /* Test timer flag is indicating to be running */
   TEST_ASSERT_TRUE(te.timer.running);
 
   /* Test timer indicated is was running when it was stopped */
-  bool status = Active_TimeEvt_stop(&te);
+  bool status = ACT_TimeEvt_stop(&te);
   TEST_ASSERT_TRUE(status);
 
   /* Test timer flag is indicating to not be running */
@@ -113,8 +113,8 @@ static void test_function_timer_dynamic_oneshot_startstop()
   const size_t timeOutMs = 20;
   const size_t periodMs = 0;
 
-  size_t sigUsed = Active_mem_Signal_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t sigUsed = ACT_mem_Signal_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   expectedSignal = ONESHOT_DYNAMIC_STARTSTOP;
 
@@ -124,13 +124,13 @@ static void test_function_timer_dynamic_oneshot_startstop()
   TimeEvt *te;
   te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   /* Test timer flag is indicating to be running */
   TEST_ASSERT_TRUE(te->timer.running);
 
   /* Test timer indicated is was running when it was stopped */
-  bool status = Active_TimeEvt_stop(te);
+  bool status = ACT_TimeEvt_stop(te);
   TEST_ASSERT_TRUE(status);
 
   /* Test timer flag is indicating to not be running */
@@ -143,8 +143,8 @@ static void test_function_timer_dynamic_oneshot_startstop()
   TEST_ASSERT_EQUAL_UINT16(0, correctEventsReceived);
 
   /* Test memory management correctly freeing events when stopping prematurely */
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, ACT_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 /* Test normal operation of a one shot timer that expires normally */
@@ -165,7 +165,7 @@ static void test_function_timer_static_oneshot_expire()
   /* Test timer starting and expiring */
   int64_t timeBeforeTest = k_uptime_get();
 
-  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   /* Test timer flag is indicating to be running */
   TEST_ASSERT_TRUE(te.timer.running);
@@ -190,7 +190,7 @@ static void test_function_timer_static_oneshot_expire()
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   /* Stopping an expired one shot timer returns that timer is stopped already */
-  bool status = Active_TimeEvt_stop(&te);
+  bool status = ACT_TimeEvt_stop(&te);
   TEST_ASSERT_FALSE(status);
 }
 
@@ -200,8 +200,8 @@ static void test_function_timer_dynamic_oneshot_expire()
   const size_t timeOutMs = 10;
   const size_t periodMs = 0;
 
-  size_t sigUsed = Active_mem_Signal_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t sigUsed = ACT_mem_Signal_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE;
 
@@ -212,7 +212,7 @@ static void test_function_timer_dynamic_oneshot_expire()
   /* Test timer starting and expiring */
   int64_t timeBeforeTest = k_uptime_get();
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
   k_msleep(timeOutMs);
@@ -231,8 +231,8 @@ static void test_function_timer_dynamic_oneshot_expire()
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   /* Test memory management correctly freeing events when stopping prematurely */
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, ACT_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 // Test checking if dynamic time event has expired before stopping
@@ -242,8 +242,8 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
   const size_t sleepMs = 9;
   const size_t periodMs = 0;
 
-  size_t sigUsed = Active_mem_Signal_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t sigUsed = ACT_mem_Signal_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_STOP;
 
@@ -256,11 +256,11 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
     sig = Signal_new(&ao, expectedSignal);
     te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
     // Add manual reference on time event to prevent it from being freed when expiring
-    Active_mem_refinc(EVT_UPCAST(te));
+    ACT_mem_refinc(EVT_UPCAST(te));
 
-    Active_TimeEvt_start(te, timeOutMs, periodMs);
+    ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
-    // Linearly increasing sleep+busy wait period until hitting timer expiry
+    // Linearly increasing sleep+busy wait period until hitting timer expiry (potential race condition)
     k_msleep(sleepMs);
     loops++;
     atomic_t i = loops;
@@ -269,8 +269,8 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
       __ASM("NOP");
     }
 
-    bool status = Active_TimeEvt_stop(te);
-    Active_mem_refdec(EVT_UPCAST(te));
+    bool status = ACT_TimeEvt_stop(te);
+    ACT_mem_refdec(EVT_UPCAST(te));
 
     if (status)
     {
@@ -278,8 +278,8 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
     }
   }
   /* Test memory management correctly freeing events when stopping prematurely */
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, ACT_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 static Event *static_oneshot_expFn(const TimeEvt *const te)
@@ -310,7 +310,7 @@ static void test_function_timer_static_expFn()
   TimeEvt te;
   TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, static_oneshot_expFn);
 
-  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   // Run to expiration
   k_msleep(timeOutMs);
@@ -322,7 +322,7 @@ static void test_function_timer_static_expFn()
   // Re-initialize attached signal that is now stopped with signal that should be replaced
   Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_2);
 
-  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   // Run to expiration
   k_msleep(timeOutMs);
@@ -352,8 +352,8 @@ static void test_function_timer_dynamic_expFn()
   const size_t timeOutMs = 10;
   const size_t periodMs = 0;
 
-  size_t sigUsed = Active_mem_Signal_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t sigUsed = ACT_mem_Signal_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_EXPFN_1;
 
@@ -361,7 +361,7 @@ static void test_function_timer_dynamic_expFn()
 
   TimeEvt *te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
   k_msleep(timeOutMs);
@@ -374,7 +374,7 @@ static void test_function_timer_dynamic_expFn()
   sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_2);
   te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
   k_msleep(timeOutMs);
@@ -384,8 +384,8 @@ static void test_function_timer_dynamic_expFn()
   TEST_ASSERT_EQUAL_UINT16(2, correctEventsReceived);
 
   /* Test memory management correctly freeing events when stopping prematurely and expiring */
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, ACT_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 static void test_function_timer_static_periodic_expire()
@@ -403,13 +403,13 @@ static void test_function_timer_static_periodic_expire()
   TimeEvt te;
   TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
 
-  Active_TimeEvt_start(&te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(&te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
   TEST_ASSERT_TRUE(te.timer.running);
 
   k_msleep(numEvents * periodMs);
 
-  bool status = Active_TimeEvt_stop(&te);
+  bool status = ACT_TimeEvt_stop(&te);
 
   /* Test status returned as running */
   TEST_ASSERT_TRUE(status);
@@ -432,8 +432,8 @@ static void test_function_timer_dynamic_periodic_expire()
   const size_t timeOutMs = 10;
   const size_t periodMs = 10;
 
-  size_t sigUsed = Active_mem_Signal_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t sigUsed = ACT_mem_Signal_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   const size_t numEvents = 10;
 
@@ -445,13 +445,13 @@ static void test_function_timer_dynamic_periodic_expire()
   TimeEvt *te;
   te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
   TEST_ASSERT_TRUE(te->timer.running);
 
   k_msleep(numEvents * periodMs);
 
-  bool status = Active_TimeEvt_stop(te);
+  bool status = ACT_TimeEvt_stop(te);
 
   /* Test status returned as running */
   TEST_ASSERT_TRUE(status);
@@ -469,8 +469,8 @@ static void test_function_timer_dynamic_periodic_expire()
   TEST_ASSERT_EQUAL_UINT16(numEvents, correctEventsReceived);
 
   /* Test memory management correctly freeing events after stopping  */
-  TEST_ASSERT_EQUAL(sigUsed, Active_mem_Signal_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(sigUsed, ACT_mem_Signal_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 static uint32_t buf0[] = {0xDEADBEEF, 0xDEADBEEF};
@@ -510,8 +510,8 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
   const size_t timeOutMs = 10;
   const size_t periodMs = 10;
 
-  size_t msgUsed = Active_mem_Message_getUsed();
-  size_t timeEvtUse = Active_mem_TimeEvt_getUsed();
+  size_t msgUsed = ACT_mem_Message_getUsed();
+  size_t timeEvtUse = ACT_mem_TimeEvt_getUsed();
 
   size_t numEvents = 10;
 
@@ -519,7 +519,7 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
   TimeEvt *te;
   te = TimeEvt_new(EVT_UPCAST(NULL), &ao, &ao, msgExpFn);
 
-  Active_TimeEvt_start(te, timeOutMs, periodMs);
+  ACT_TimeEvt_start(te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
   TEST_ASSERT_TRUE(te->timer.running);
   size_t i = numEvents;
@@ -538,7 +538,7 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
     k_msleep(periodMs);
   }
 
-  bool status = Active_TimeEvt_stop(te);
+  bool status = ACT_TimeEvt_stop(te);
 
   /* Test status returned as running */
   TEST_ASSERT_TRUE(status);
@@ -553,8 +553,8 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
   TEST_ASSERT_EQUAL_UINT16(numEvents, correctEventsReceived);
 
   /* Test memory management correctly freeing events after stopping  */
-  TEST_ASSERT_EQUAL(msgUsed, Active_mem_Message_getUsed());
-  TEST_ASSERT_EQUAL(timeEvtUse, Active_mem_TimeEvt_getUsed());
+  TEST_ASSERT_EQUAL(msgUsed, ACT_mem_Message_getUsed());
+  TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
 void setUp()
@@ -573,8 +573,8 @@ void main()
 
   UNITY_BEGIN();
 
-  Active_init(&ao, ao_dispatch, &qdtest, &tdtest);
-  Active_start(&ao);
+  ACTP_init(&ao, ao_dispatch, &qdtest, &tdtest);
+  ACTP_start(&ao);
 
   /* Test a oneshot timer event w attached event that is started and stopped before expiry */
   RUN_TEST(test_function_timer_static_oneshot_startstop);

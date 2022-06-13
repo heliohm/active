@@ -19,7 +19,7 @@ struct topic
   uint16_t node;
   Topic *child;
 };
-// ACTIVE_CASSERT(sizeof(Topic) == 8, "Topic type is not the right size.");
+// ACT_CASSERT(sizeof(Topic) == 8, "Topic type is not the right size.");
 
 /* Message to send to a pubsub active object to subscribe or
 unsubscribe to a message */
@@ -28,7 +28,7 @@ typedef struct SubMessage
   Event super;
   Topic *topic;
 } SubMessage;
-// ACTIVE_CASSERT(sizeof(SubMessage) == 12, "SubMessage type is not the right size.");
+// ACT_CASSERT(sizeof(SubMessage) == 12, "SubMessage type is not the right size.");
 
 /* Wrapper message to send to pubsub active object to publish a message.
 Includes the metadata of the message and a pointer to the message itself */
@@ -40,6 +40,6 @@ typedef struct PubMessage
   bool sticky;  /* Should the message be retained for new subscribers? */
 } PubMessage;
 
-// ACTIVE_CASSERT(sizeof(PubMessage) == 20, "PubMessage type is not the right size.");
+// ACT_CASSERT(sizeof(PubMessage) == 20, "PubMessage type is not the right size.");
 
 #endif /* _ACTIVE_PSMSG_H_ */

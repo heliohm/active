@@ -130,7 +130,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
 
 void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td, PingPong *pp)
 {
-  Active_init(&(me->super), PingPong_dispatch, qd, td);
+  ACTP_init(&(me->super), PingPong_dispatch, qd, td);
   me->pingpong = pp; /* Example private data structure */
 }
 ```
@@ -146,11 +146,11 @@ PingPong ping, pong;
 
 #define MAX_MSG 10
 
-ACTIVE_QBUF(pingQbuf, MAX_MSG);
-ACTIVE_Q(pingQ);
-ACTIVE_THREAD(pingT);
-ACTIVE_THREAD_STACK(pingStack, 512);
-ACTIVE_THREAD_STACK_SIZE(pingStackSz, pingStack);
+ACTP_QBUF(pingQbuf, MAX_MSG);
+ACTP_Q(pingQ);
+ACTP_THREAD(pingT);
+ACTP_THREAD_STACK_DEFINE(pingStack, 512);
+ACTP_THREAD_STACK_SIZE(pingStackSz, pingStack);
 
 const static queueData qdping = {.maxMsg = MAX_MSG,
                                  .queBuf = pingQbuf,
@@ -178,7 +178,7 @@ int main(void)
 
 After Active objects are initialized, they are ready to be started. When an Active object is started, its dispatch function will immediately receive a `Signal` event with value START_SIG.
 
-An Active object is typically either started by the `main()` function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `Active_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
+An Active object is typically either started by the `main()` function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `ACTP_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
  
  ```C
 int main(void)
@@ -186,13 +186,13 @@ int main(void)
   PingPong_init(&ping, &qdping, &tdping, &pong);
   PingPong_init(&pong, &qdpong, &tdpong, &ping);
 
-  Active_start(ACTIVE_UPCAST(&ping));
-  Active_start(ACTIVE_UPCAST(&pong));
+  ACTP_start(ACT_UPCAST(&ping));
+  ACTP_start(ACT_UPCAST(&pong));
   
 }
 
 ````
-The `ACTIVE_UPCAST()` macro is a helper macro to upcast application active objects into their parent class to prevent compiler warnings.
+The `ACT_UPCAST()` macro is a helper macro to upcast application active objects into their parent class to prevent compiler warnings.
 
 ### Process start event
 
@@ -222,7 +222,7 @@ Pool sizes can be found through analyzing the application and monitoring the max
 
 ### Posting events
 
-An event is posted using the `Active_post` function:
+An event is posted using the `ACT_post` function:
 
 ```C
 /* pingpong.c */
@@ -254,12 +254,12 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
       }
       case PING:
       {
-        Active_post(me, EVT_UPCAST(&pongSig));
+        ACT_post(me, EVT_UPCAST(&pongSig));
         break;
       }
       case PONG:
       {
-        Active_post(me, EVT_UPCAST(&pingSig));
+        ACT_post(me, EVT_UPCAST(&pingSig));
         break;
       }
       default:
@@ -282,7 +282,7 @@ The lifetime of an event should be assumed to be only while processing it in the
 If the Active object for some reason needs to retain the event, it can extend the lifetime of it in the following ways:
 - Post the received event again to itself in the dispatch function
 - Post the received event again to itself as an attached event of a time event.
-- Add a manual memory reference to the received event using `Active_mem_refinc`. Take care to decrement the reference again later using `Active_mem_refdec` to ensure event is freed correctly.
+- Add a manual memory reference to the received event using `ACT_mem_refinc`. Take care to decrement the reference again later using `ACT_mem_refdec` to ensure event is freed correctly.
 
 Forwarding an event to other active objects is allowed. When re-posting inside the dispatch function, Active's memory management will ensure the event is not freed prematurely.
 
@@ -304,18 +304,18 @@ Creating a time event takes the following arguments:
 Time events can either be declared statically in the application and initialized by `TimeEvt_init` or created dynamically by `TimeEvt_new`.
 The application can freely mix dynamic and static events between the time event and attached event.
 
-A Time event is started by calling `Active_TimeEvt_start`, with arguments in milliseconds for initial expiry and subsequent timeouts for periodic expiry.
+A Time event is started by calling `ACT_TimeEvt_start`, with arguments in milliseconds for initial expiry and subsequent timeouts for periodic expiry.
 The timer implementations typically guarantee that *at least* the time given as argument has passed. Asynchronous messaging cannot in itself guarantee that an exact amount of time has passed at processing time.
 
 When starting a time event, the underlying framework's timer implementation will be started. At expiry, the Active framework posts the time event itself back to the sender in an ISR context. Then, the Active object will process the Time event in its own context/thread, call the expiry function if set and then post the attached event to the receiver.
 
-To stop a one shot Time event before expiry or to stop a running periodic Time event, the `Active_TimeEvt_stop` is used.
+To stop a one shot Time event before expiry or to stop a running periodic Time event, the `ACT_TimeEvt_stop` is used.
 
 
 ### Usage rules - Dynamic events
 
 Active objects can only post a dynamic (allocated) events *once*. Dynamic events are freed and garbage collected once processed by all receiving Active objects.
-If a dynamic event is to be posted multiple times, the Active object needs to set and remove a memory reference to it using `Active_mem_refinc` (before first post) and `Active_mem_refdec` (after all posts are complete).
+If a dynamic event is to be posted multiple times, the Active object needs to set and remove a memory reference to it using `ACT_mem_refinc` (before first post) and `ACT_mem_refdec` (after all posts are complete).
 
 Dynamic events should be considered immutable by the sender Active object once posted, as the receiving object might preempt the sender at any time.
 
@@ -339,8 +339,7 @@ The free function can also be used to let application know that event is being f
 
 ## Ideas Roadmap
 
-- Complete refactoring framework and compiler ports into _port files (zephyr, gcc)
-- Make it possible to configure the library using an application header file (asserts)
+- Finish refactoring framework into _port files (remaining: sleep functions)
 - Improving asserts (assert levels, test coverage w/o asserts, ROM size usage (create LUT for file / line / message))
 - Make max usage of AO queues available to the application
 - Review atomic accesses (e.g. memory references) 
@@ -349,7 +348,7 @@ The free function can also be used to let application know that event is being f
 - Dynamic payloads
 - Pub/sub support (TBD if broker-less or internal broker) with enum based topics to reduce ROM size
 - Considering: Service discovery for run-time boot strapping of application
-- Considering: Build support for Active object "bridges" with connection state to external interfaces (UART, Bluetooth Low Energy) supporting serialization for "networked" message passing
+- Considering: Build support for connection oriented Active object "bridges" to external interfaces (UART, Bluetooth Low Energy) supporting serialization for "networked" message passing
 
 
 ## License

@@ -17,7 +17,7 @@ void test_signal_new()
   TEST_ASSERT_TRUE(s->super._dynamic);
   TEST_ASSERT_EQUAL_UINT16(0, s->super._refcnt);
 
-  Active_mem_gc(EVT_UPCAST(s));
+  ACT_mem_gc(EVT_UPCAST(s));
 }
 
 void test_message_new()
@@ -37,7 +37,7 @@ void test_message_new()
   TEST_ASSERT_TRUE(m->super._dynamic);
   TEST_ASSERT_EQUAL(&ao, m->super._sender);
 
-  Active_mem_gc(EVT_UPCAST(m));
+  ACT_mem_gc(EVT_UPCAST(m));
 }
 
 void test_timeevt_new()
@@ -56,7 +56,7 @@ void test_timeevt_new()
   TEST_ASSERT_EQUAL(NULL, te->expFn);
   TEST_ASSERT_EQUAL(&ao, te->receiver);
 
-  Active_mem_gc(EVT_UPCAST(te));
+  ACT_mem_gc(EVT_UPCAST(te));
 }
 
 void test_active_mem_gc()
@@ -64,14 +64,14 @@ void test_active_mem_gc()
 
   Active ao;
 
-  for (uint16_t i = 0; i < ACTIVE_MEM_NUM_SIGNALS + 10; i++)
+  for (uint16_t i = 0; i < ACT_MEM_NUM_SIGNALS + 10; i++)
   {
-    uint32_t numUsed = Active_mem_Signal_getUsed();
+    uint32_t numUsed = ACT_mem_Signal_getUsed();
     Signal *s = Signal_new(&ao, TEST_SIG);
     TEST_ASSERT_NOT_NULL(s);
-    TEST_ASSERT_EQUAL(numUsed + 1, Active_mem_Signal_getUsed());
-    Active_mem_gc(EVT_UPCAST(s));
-    TEST_ASSERT_EQUAL(numUsed, Active_mem_Signal_getUsed());
+    TEST_ASSERT_EQUAL(numUsed + 1, ACT_mem_Signal_getUsed());
+    ACT_mem_gc(EVT_UPCAST(s));
+    TEST_ASSERT_EQUAL(numUsed, ACT_mem_Signal_getUsed());
   }
 }
 
@@ -79,8 +79,8 @@ void test_active_mem_ref_inc()
 {
   Active ao;
   Signal *s = Signal_new(&ao, TEST_SIG);
-  Active_mem_refinc(EVT_UPCAST(s));
-  TEST_ASSERT_EQUAL_UINT16(1, Active_mem_getRefCount(EVT_UPCAST(s)));
+  ACT_mem_refinc(EVT_UPCAST(s));
+  TEST_ASSERT_EQUAL_UINT16(1, ACT_mem_getRefCount(EVT_UPCAST(s)));
 }
 
 void test_active_mem_ref_dec()
@@ -89,10 +89,10 @@ void test_active_mem_ref_dec()
 
   Signal *s = Signal_new(&ao, TEST_SIG);
 
-  Active_mem_refinc(EVT_UPCAST(s));
-  Active_mem_refdec(EVT_UPCAST(s));
+  ACT_mem_refinc(EVT_UPCAST(s));
+  ACT_mem_refdec(EVT_UPCAST(s));
 
-  TEST_ASSERT_EQUAL_UINT16(0, Active_mem_getRefCount(EVT_UPCAST(s)));
+  TEST_ASSERT_EQUAL_UINT16(0, ACT_mem_getRefCount(EVT_UPCAST(s)));
 }
 
 void main()

@@ -13,20 +13,20 @@
  * @brief Defines for Active memory pool sizes
  *
  */
-#ifndef ACTIVE_MEM_NUM_SIGNALS
-#define ACTIVE_MEM_NUM_SIGNALS 3
+#ifndef ACT_MEM_NUM_SIGNALS
+#define ACT_MEM_NUM_SIGNALS 3
 #endif
 
-#ifndef ACTIVE_MEM_NUM_MESSAGES
-#define ACTIVE_MEM_NUM_MESSAGES 3
+#ifndef ACT_MEM_NUM_MESSAGES
+#define ACT_MEM_NUM_MESSAGES 3
 #endif
 
-#ifndef ACTIVE_MEM_NUM_TIMEREVT
-#define ACTIVE_MEM_NUM_TIMEREVT 3
+#ifndef ACT_MEM_NUM_TIMEEVT
+#define ACT_MEM_NUM_TIMEEVT 3
 #endif
-
-#ifndef ACTIVE_MEM_NUM_OBJPOOLS
-#define ACTIVE_MEM_NUM_OBJPOOLS 1
+/*
+#ifndef ACT_MEM_NUM_OBJPOOLS
+#define ACT_MEM_NUM_OBJPOOLS 1
 #endif
-
+*/
 #endif /* _ACTIVE_CONFIG_LOADER_H */

@@ -31,9 +31,9 @@ typedef struct threadData threadData;
 typedef struct queueData queueData;
 
 /* Timer data struture type */
-typedef struct timerData Active_Timer;
+typedef struct timerData ACT_Timer;
 
 /* Memory pool type */
-typedef struct mempoolData Active_Mempool;
+typedef struct mempoolData ACT_Mempool;
 
 #endif /* ACTIVE_TYPES_H */

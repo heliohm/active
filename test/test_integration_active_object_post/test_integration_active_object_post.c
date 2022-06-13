@@ -1,11 +1,11 @@
 #include <active.h>
 #include <unity.h>
 
-static ACTIVE_QBUF(testQBuf, 1);
-static ACTIVE_Q(testQ);
-static ACTIVE_THREAD(testT);
-static ACTIVE_THREAD_STACK(testTStack, 512);
-static ACTIVE_THREAD_STACK_SIZE(testTStackSz, testTStack);
+static ACTP_QBUF(testQBuf, 1);
+static ACTP_Q(testQ);
+static ACTP_THREAD(testT);
+static ACTP_THREAD_STACK_DEFINE(testTStack, 512);
+static ACTP_THREAD_STACK_SIZE(testTStackSz, testTStack);
 
 const static queueData qdtest = {.maxMsg = 1,
                                  .queBuf = testQBuf,
@@ -44,7 +44,7 @@ static void ao_dispatch(Active *me, Event const *const e)
 static void test_function_active_post()
 {
 
-  Active_post(&ao, EVT_UPCAST(&testSig));
+  ACT_post(&ao, EVT_UPCAST(&testSig));
   k_msleep(50);
 
   TEST_ASSERT_TRUE(wasTestSigReceived);
@@ -52,7 +52,7 @@ static void test_function_active_post()
 
 static void test_function_active_post_timeevt()
 {
-  Active_TimeEvt_start(&timeEvt, 50, 0);
+  ACT_TimeEvt_start(&timeEvt, 50, 0);
   k_msleep(100);
 
   TEST_ASSERT_TRUE(wasTimeSigReceived);
@@ -64,8 +64,8 @@ void main()
 
   UNITY_BEGIN();
 
-  Active_init(&ao, ao_dispatch, &qdtest, &tdtest);
-  Active_start(&ao);
+  ACTP_init(&ao, ao_dispatch, &qdtest, &tdtest);
+  ACTP_start(&ao);
 
   Signal_init(&testSig, &ao, TEST_SIG);
   Signal_init(&timeSig, &ao, TIME_SIG);

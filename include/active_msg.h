@@ -34,18 +34,18 @@ struct event
 {
   Active *_sender;        // Sender of event
   EvtType type;           // Type of event
-  const refCnt_t _refcnt; // Number of memory references for event
-  const bool _dynamic;    // Flag for memory management to know if event is dynamic or static
+  const refCnt_t _refcnt; // Number of memory references for event. Const to avoid application modifying by accident.
+  const bool _dynamic;    // Flag for memory management to know if event is dynamic or static. Const to avoid application modifying by accident.
 };
 
 /* Time event for posting an attached event on a timer (one shot or periodic) */
 struct timeevt
 {
-  Event super;              // Sender and type (for delegation) and memory tracking
+  const Event super;        // Sender and type (for delegation) and memory tracking
   const Event *e;           // Attached event to send on expiry
   const Active *receiver;   // AO to send message to if sending a direct message
   TimerExpiryHandler expFn; // Expiry function to let AO replace attached event at timer expiry
-  Active_Timer timer;       // Timer instance belonging to time event
+  ACT_Timer timer;          // Timer instance belonging to time event
 };
 
 /* Signals active objects that something has happened. Takes no parameters */
