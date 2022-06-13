@@ -42,6 +42,16 @@ Used by application to set up a queue */
 Used by application to set up a buffer for the queue */
 #define ACTP_QBUF(bufSym, maxMsg) char alignas(alignof(Event *)) bufSym[sizeof(Event *) * maxMsg]
 
+/* @internal - Get an entry from the message queue. Used by active framework to get Events in Active objects.
+Function blocks Active object forever until message is put on its queue  */
+#define ACTP_Q_GET(qPtrSym, evtPtrPtr) k_msgq_get((struct k_msgq *)qPtrSym, evtPtrPtr, K_FOREVER)
+#define ACTP_Q_GET_SUCCESS_STATUS 0
+
+/* @internal - Put an entry on the message queue. Used by active framework to post Events to Active objects.
+Function does not block but returns immediately */
+#define ACTP_Q_PUT(qPtrSym, evtPtrPtr) k_msgq_put((struct k_msgq *)qPtrSym, evtPtrPtr, K_NO_WAIT);
+#define ACTP_Q_PUT_SUCCESS_STATUS 0
+
 /**
  * @brief Zephyr RTOS port of threads used by the Active framework
  *
@@ -122,26 +132,6 @@ https://docs.zephyrproject.org/latest/kernel/services/threads/index.html#thread-
  *  Platform specific functions
  **************************** */
 
-/* Thread safe port for pending on the queue until a message is received */
-static inline void ACTP_get(void const *qPtr, Event **e)
-{
-
-  int status = k_msgq_get((struct k_msgq *)qPtr, e, K_FOREVER);
-  ACTP_ASSERT(status == 0, "Event was not retrieved. Error: %i", status);
-
-  ARG_UNUSED(status);
-}
-
-/* Thread safe port for putting event pointers on the receiving queue */
-static inline int ACTP_put(void const *qPtr, Event const *const *const e)
-{
-  int status = k_msgq_put((struct k_msgq *)qPtr, e, K_NO_WAIT);
-
-  ACTP_ASSERT(status == 0, "Event not put on queue %p. Error: %i\n\n", qPtr, status);
-
-  ARG_UNUSED(status);
-  return status;
-}
 /**
  * @brief Zephyr timer expiry function. Called by timer ISR when a timer expires.
  * Used for mapping between native timer and Active Time event

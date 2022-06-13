@@ -9,11 +9,14 @@ void ACT_eventLoop(Active *const me)
   // Initialize active object
   me->dispatch(me, EVT_UPCAST(&startSignal));
 
-  Event *e;
   while (1)
   {
-    e = NULL;
-    ACTP_get(me->queue, &e);
+    Event *e = NULL;
+    /* Blocking wait for events */
+    int status = ACTP_Q_GET(me->queue, &e);
+
+    ACTP_ASSERT(status == ACTP_Q_GET_SUCCESS_STATUS, "Event was not retrieved. Error: %i", status);
+    ARG_UNUSED(status);
 
     ACTP_ASSERT(e != NULL, "Event object is null");
 
@@ -36,7 +39,7 @@ void ACT_eventLoop(Active *const me)
   }
 }
 
-int ACT_post(Active const *const receiver, Event const *const e)
+inline int ACT_post(Active const *const receiver, Event const *const e)
 {
   ACTP_ASSERT(receiver != NULL, "Receiver is null");
   ACTP_ASSERT(e != NULL, "Event object is null");
@@ -47,11 +50,11 @@ int ACT_post(Active const *const receiver, Event const *const e)
   (which would decrement the ref counter while processingand potentially free it) */
   ACT_mem_refinc(e);
 
-  // NB: Pointer to pointer
-  int status = ACTP_put(receiver->queue, &e);
+  int status = ACTP_Q_PUT(receiver->queue, &e);
+  ACTP_ASSERT(status == ACTP_Q_PUT_SUCCESS_STATUS, "Event not put on queue %p. Error: %i\n\n", receiver->queue, status);
 
   // Event was not sent, remove memory ref again
-  if (status != 0)
+  if (status != ACTP_Q_PUT_SUCCESS_STATUS)
   {
     ACT_mem_refdec(e);
   }
@@ -59,7 +62,7 @@ int ACT_post(Active const *const receiver, Event const *const e)
   return status;
 }
 
-int ACT_postTimeEvt(TimeEvt *te)
+inline int ACT_postTimeEvt(TimeEvt *te)
 {
   // Post time event to AO sender's queue so AO framework can
   // update and post the attached event in the sender's context
