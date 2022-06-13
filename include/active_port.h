@@ -142,6 +142,12 @@ static inline int ACTP_put(void const *qPtr, Event const *const *const e)
   ARG_UNUSED(status);
   return status;
 }
+/**
+ * @brief Zephyr timer expiry function. Called by timer ISR when a timer expires.
+ * Used for mapping between native timer and Active Time event
+ *
+ */
+void ACTP_TimerExpiryFn(ACTP_TIMERPTR(nativeTimerPtr));
 
 #else
 #error "No supported port of Active library found"

@@ -47,6 +47,12 @@ void ACTP_start(Active *const me)
   k_thread_start(me->thread);
 }
 
+void ACTP_TimerExpiryFn(ACTP_TIMERPTR(nativeTimerPtr))
+{
+  TimeEvt *te = (TimeEvt *)ACTP_TIMER_PARAM_GET(nativeTimerPtr);
+  ACT_Timer_expiryCB(te);
+}
+
 /* Hook to stop program on assert failures */
 void assert_post_action(const char *file, unsigned int line)
 {

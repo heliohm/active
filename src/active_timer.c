@@ -6,17 +6,14 @@ typedef enum TimerType
   PERIODIC
 } TimerType;
 
-static TimerType getTimerType(ACT_Timer *timer)
+static TimerType getTimerType(const ACT_Timer *const timer)
 {
   return timer->periodMs == 0 ? ONESHOT : PERIODIC;
 }
 
 // Runs in ISR context - called from underlying port/framework
-static void ACT_Timer_expiryCB(ACTP_TIMERPTR(nativeTimerPtr))
+void ACT_Timer_expiryCB(TimeEvt *const te)
 {
-  TimeEvt *te = (TimeEvt *)ACTP_TIMER_PARAM_GET(nativeTimerPtr);
-
-  te->timer.sync = false; // Timer stop synchronization
 
   // Post time event
   ACT_postTimeEvt(te);
@@ -24,6 +21,7 @@ static void ACT_Timer_expiryCB(ACTP_TIMERPTR(nativeTimerPtr))
   if (getTimerType(&(te->timer)) == ONESHOT)
   {
     te->timer.running = false;
+    te->timer.sync = false; // Timer stop synchronization
 
     // One shot time events - decrement reference immediately
     // after posting - posting adds new ref that keeps it alive
@@ -31,7 +29,7 @@ static void ACT_Timer_expiryCB(ACTP_TIMERPTR(nativeTimerPtr))
   }
 }
 
-void ACT_TimeEvt_dispatch(TimeEvt *te)
+void ACT_TimeEvt_dispatch(TimeEvt *const te)
 {
   if (te->expFn)
   {
@@ -69,7 +67,7 @@ void ACT_TimeEvt_dispatch(TimeEvt *te)
 void ACT_Timer_init(TimeEvt *te)
 {
   ACT_Timer *tp = &(te->timer);
-  ACTP_TIMER_INIT(tp, ACT_Timer_expiryCB);
+  ACTP_TIMER_INIT(tp, ACTP_TimerExpiryFn);
   ACTP_TIMER_PARAM_SET(tp, te);
 
   te->timer.running = false;

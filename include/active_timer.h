@@ -28,6 +28,14 @@ struct timerData
 void ACT_Timer_init(TimeEvt *te);
 
 /**
+ * @brief Internal: Callback to handle timer expiry. Must not be used by application.
+ * Used by Active framework to let native timer implementation call the generic framework.
+ *
+ * @param te The Time event whose timer expired
+ */
+void ACT_Timer_expiryCB(TimeEvt *const te);
+
+/**
  * @brief Internal: Callback to process time events. Must not be used by application.
  * Used by Active framework to process expired time events and post attached events.
  */
