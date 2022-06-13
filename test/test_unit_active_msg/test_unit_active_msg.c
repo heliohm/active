@@ -3,7 +3,7 @@
 
 enum TestUserSignal
 {
-  TEST_SIG = USER_SIG
+  TEST_SIG = ACT_USER_SIG
 };
 
 SIGNAL_DEFINE(sm, TEST_SIG);
@@ -33,7 +33,7 @@ void test_macro_message()
 
 void test_function_signal_init()
 {
-  Signal s;
+  ACT_Signal s;
   Active ao;
   Signal_init(&s, &ao, TEST_SIG);
 
@@ -62,16 +62,16 @@ void test_function_message_init()
   TEST_ASSERT_EQUAL(&ao, m.super._sender);
 }
 
-static Event *expFn(TimeEvt const *const te)
+static ACT_Evt *expFn(TimeEvt const *const te)
 {
-  return (Event *)NULL;
+  return (ACT_Evt *)NULL;
 }
 
 void test_function_timeevt_init()
 {
   TimeEvt te;
   Active ao;
-  Event e;
+  ACT_Evt e;
 
   TimeEvt_init(&te, &ao, &e, &ao, expFn);
 
@@ -89,17 +89,17 @@ void test_function_timeevt_init()
 void test_macro_evt_upcast()
 {
 
-  Signal *s = NULL;
+  ACT_Signal *s = NULL;
 
-  TEST_ASSERT_EQUAL(EVT_UPCAST(s), (Event *)s);
+  TEST_ASSERT_EQUAL(EVT_UPCAST(s), (ACT_Evt *)s);
 }
 
 void test_macro_evt_cast()
 {
-  Signal *s = NULL;
-  Event *e = (Event *)s;
+  ACT_Signal *s = NULL;
+  ACT_Evt *e = (ACT_Evt *)s;
 
-  TEST_ASSERT_EQUAL(s, EVT_CAST(e, Signal));
+  TEST_ASSERT_EQUAL(s, EVT_CAST(e, ACT_Signal));
 }
 
 void main()

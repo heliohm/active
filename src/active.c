@@ -4,21 +4,21 @@ void ACT_eventLoop(Active *const me)
 {
   ACTP_ASSERT(me != NULL, "Active object is null)");
 
-  static const SIGNAL_DEFINE(startSignal, START_SIG);
+  static const SIGNAL_DEFINE(startSignal, ACT_START_SIG);
 
   // Initialize active object
   me->dispatch(me, EVT_UPCAST(&startSignal));
 
   while (1)
   {
-    Event *e = NULL;
+    ACT_Evt *e = NULL;
     /* Blocking wait for events */
     int status = ACTP_Q_GET(me->queue, &e);
 
-    ACTP_ASSERT(status == ACTP_Q_GET_SUCCESS_STATUS, "Event was not retrieved. Error: %i", status);
+    ACTP_ASSERT(status == ACTP_Q_GET_SUCCESS_STATUS, "ACT_Evt was not retrieved. Error: %i", status);
     ACT_ARG_UNUSED(status);
 
-    ACTP_ASSERT(e != NULL, "Event object is null");
+    ACTP_ASSERT(e != NULL, "ACT_Evt pointer is null");
 
     // Timer events are not processed by the AO dispatch function.
     // Instead the attached event is processed in the context of the
@@ -39,11 +39,11 @@ void ACT_eventLoop(Active *const me)
   }
 }
 
-int ACT_post(Active const *const receiver, Event const *const e)
+int ACT_post(Active const *const receiver, ACT_Evt const *const e)
 {
   ACTP_ASSERT(receiver != NULL, "Receiver is null");
-  ACTP_ASSERT(e != NULL, "Event object is null");
-  ACTP_ASSERT(e->type != UNUSED, "Event object is not initialized");
+  ACTP_ASSERT(e != NULL, "ACT_Evt object is null");
+  ACTP_ASSERT(e->type != UNUSED, "ACT_Evt object is not initialized");
 
   /* Adding a memory ref must be done before putting it on the receiving queue,
   in case receiving object is higher priority than running object

@@ -1,14 +1,14 @@
 #include <stdbool.h>
 #include <active.h>
 
-static void Event_init(Event *const e, Active const *const me, EvtType t)
+static void ACT_Evt_init(ACT_Evt *const e, Active const *const me, ACT_EvtType type)
 {
 
-  ACTP_ASSERT(e != NULL, "Event is NULL");
-  ACTP_ASSERT(t != UNUSED, "Event type is UNUSED");
+  ACTP_ASSERT(e != NULL, "ACT_Evt is NULL");
+  ACTP_ASSERT(type != UNUSED, "ACT_EvtT type is UNUSED");
   ACTP_ASSERT(me != NULL, "Active object sender not set for event");
 
-  e->type = t;
+  e->type = type;
   e->_sender = (Active *)me;
 
   // Cast away const to clear dynamic field
@@ -19,29 +19,29 @@ static void Event_init(Event *const e, Active const *const me, EvtType t)
   refCnt_t *cnt = (refCnt_t *)&(e->_refcnt);
   *cnt = 0;
 }
-void Signal_init(Signal *s, Active const *const me, uint16_t sig)
+void Signal_init(ACT_Signal *s, Active const *const me, uint16_t sig)
 {
-  ACTP_ASSERT(sig >= (uint16_t)USER_SIG, "Signal type is invalid user defined signal");
+  ACTP_ASSERT(sig >= (uint16_t)ACT_USER_SIG, "Signal type is invalid user defined signal");
 
-  Event_init(EVT_UPCAST(s), me, SIGNAL);
+  ACT_Evt_init(EVT_UPCAST(s), me, SIGNAL);
   s->sig = sig;
 }
 
 void Message_init(Message *m, Active const *const me, uint16_t header, void *payload, uint16_t payloadLen)
 {
-  Event_init(EVT_UPCAST(m), me, MESSAGE);
+  ACT_Evt_init(EVT_UPCAST(m), me, MESSAGE);
   m->header = header;
   m->payload = payload;
   m->payloadLen = payloadLen;
 }
 
-void TimeEvt_init(TimeEvt *const te, const Active *const me, Event *const e, Active const *const receiver, TimerExpiryHandler expFn)
+void TimeEvt_init(TimeEvt *const te, const Active *const me, ACT_Evt *const e, Active const *const receiver, TimerExpiryHandler expFn)
 {
 
-  ACTP_ASSERT((e == NULL && expFn != NULL) || e != NULL, "Event is null without expiry function set");
+  ACTP_ASSERT((e == NULL && expFn != NULL) || e != NULL, "ACT_Evt is null without expiry function set");
 
   // Initialize timer event
-  Event_init(EVT_UPCAST(te), me, TIMEREVT);
+  ACT_Evt_init(EVT_UPCAST(te), me, TIMEREVT);
 
   te->e = e;
   te->receiver = receiver;

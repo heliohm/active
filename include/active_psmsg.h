@@ -25,7 +25,7 @@ struct topic
 unsubscribe to a message */
 typedef struct SubMessage
 {
-  Event super;
+  ACT_Evt super;
   Topic *topic;
 } SubMessage;
 // ACT_CASSERT(sizeof(SubMessage) == 12, "SubMessage type is not the right size.");
@@ -34,10 +34,10 @@ typedef struct SubMessage
 Includes the metadata of the message and a pointer to the message itself */
 typedef struct PubMessage
 {
-  Event super;  /* Publish message metadata */
-  Event *e;     /* Attached message to be published to subscribers */
-  Topic *topic; /* Topic to publish message to */
-  bool sticky;  /* Should the message be retained for new subscribers? */
+  ACT_Evt super; /* Publish message metadata */
+  ACT_Evt *e;    /* Attached message to be published to subscribers */
+  Topic *topic;  /* Topic to publish message to */
+  bool sticky;   /* Should the message be retained for new subscribers? */
 } PubMessage;
 
 // ACT_CASSERT(sizeof(PubMessage) == 20, "PubMessage type is not the right size.");

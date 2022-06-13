@@ -3,13 +3,13 @@
 
 enum TestUserSignal
 {
-  TEST_SIG = USER_SIG
+  TEST_SIG = ACT_USER_SIG
 };
 
 void test_signal_new()
 {
   Active ao;
-  Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
 
   TEST_ASSERT_EQUAL(SIGNAL, s->super.type);
   TEST_ASSERT_EQUAL(&ao, s->super._sender);
@@ -43,7 +43,7 @@ void test_message_new()
 void test_timeevt_new()
 {
   Active ao;
-  Event e;
+  ACT_Evt e;
 
   TimeEvt *te = TimeEvt_new(&e, &ao, &ao, NULL);
 
@@ -67,7 +67,7 @@ void test_active_mem_gc()
   for (uint16_t i = 0; i < ACT_MEM_NUM_SIGNALS + 10; i++)
   {
     uint32_t numUsed = ACT_mem_Signal_getUsed();
-    Signal *s = Signal_new(&ao, TEST_SIG);
+    ACT_Signal *s = Signal_new(&ao, TEST_SIG);
     TEST_ASSERT_NOT_NULL(s);
     TEST_ASSERT_EQUAL(numUsed + 1, ACT_mem_Signal_getUsed());
     ACT_mem_gc(EVT_UPCAST(s));
@@ -78,7 +78,7 @@ void test_active_mem_gc()
 void test_active_mem_ref_inc()
 {
   Active ao;
-  Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
   ACT_mem_refinc(EVT_UPCAST(s));
   TEST_ASSERT_EQUAL_UINT16(1, ACT_mem_getRefCount(EVT_UPCAST(s)));
 }
@@ -87,7 +87,7 @@ void test_active_mem_ref_dec()
 {
   Active ao;
 
-  Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
 
   ACT_mem_refinc(EVT_UPCAST(s));
   ACT_mem_refdec(EVT_UPCAST(s));

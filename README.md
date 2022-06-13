@@ -107,7 +107,7 @@ Then, implement the init function for the Active object and the dispatch functio
 /* pingpong.c */
 #include <active.h>
 
-static void PingPong_dispatch(Active *const me, Event const *const e)
+static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
 {
   PingPong *p = (PingPong *)me;
   if (e->type == SIGNAL)
@@ -238,7 +238,7 @@ enum AppUserSignal
 static const SIGNAL_DEFINE(pingSig, PING);
 static const SIGNAL_DEFINE(pongSig, PONG);
 
-static void PingPong_dispatch(Active *const me, Event const *const e)
+static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
 {
   PingPong *p = (PingPong *)me; /* To access internal data */
 
@@ -271,7 +271,7 @@ static void PingPong_dispatch(Active *const me, Event const *const e)
 }
 ```
 
-The `EVT_UPCAST()`is available to upcast pointers to specific events up to the base `Event`type.
+The `EVT_UPCAST()`is available to upcast pointers to specific events up to the base `ACT_Evt`type.
 
 ### Processing events
 
@@ -296,7 +296,7 @@ Typical use cases for Time events are:
 - Streaming data (e.g. double buffering) between two Active objects (producer / consumer) using a Message event with dynamic payloads
 
 Creating a time event takes the following arguments:
-- An attached `Event *` that will be posted at timer expiry (one shot or periodic)
+- An attached `ACT_Evt *` that will be posted at timer expiry (one shot or periodic)
 - The Active object `sender`, which is used for posting the event in the senders context (thread) at timer expiry
 - The Active object `receiver`, which will receive the attached event
 - An application defined expiry function that can be used to set or replace the attached event before it is being posted at expiry.

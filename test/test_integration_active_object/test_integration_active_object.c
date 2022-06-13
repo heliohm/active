@@ -1,7 +1,7 @@
 #include <active.h>
 #include <unity.h>
 
-static void ao_emptyDispatch(Active *me, Event const *const e)
+static void ao_emptyDispatch(Active *me, ACT_Evt const *const e)
 {
 }
 
@@ -22,9 +22,9 @@ const static threadData tdtest = {.thread = &testT,
 
 static bool wasInitSigReceived = false;
 
-static void ao_initDispatch(Active *me, Event const *const e)
+static void ao_initDispatch(Active *me, ACT_Evt const *const e)
 {
-  if (e->type == SIGNAL && EVT_CAST(e, Signal)->sig == START_SIG)
+  if (e->type == SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
   {
     wasInitSigReceived = true;
   }

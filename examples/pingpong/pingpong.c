@@ -6,18 +6,18 @@
 
 #include <console/console.h>
 
-extern Signal pingSignal, pongSignal;
+extern ACT_Signal pingSignal, pongSignal;
 
-static void PingPong_dispatch(Active *const me, Event const *const e)
+static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
 {
   k_msleep(100);
 
   if (e->type == SIGNAL)
   {
-    uint16_t sig = EVT_CAST(e, Signal)->sig;
+    uint16_t sig = EVT_CAST(e, ACT_Signal)->sig;
     switch (sig)
     {
-    case START_SIG:
+    case ACT_START_SIG:
     {
       printk("Starting PingPong...\n\n");
       break;

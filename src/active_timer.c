@@ -34,11 +34,11 @@ void ACT_TimeEvt_dispatch(TimeEvt *const te)
   if (te->expFn)
   {
     // Let Active objects expiry function update attached event
-    Event *updated_evt = te->expFn(te);
+    ACT_Evt *updated_evt = te->expFn(te);
 
     if (updated_evt)
     {
-      Event *last_evt = (Event *)te->e;
+      ACT_Evt *last_evt = (ACT_Evt *)te->e;
       te->e = updated_evt;
 
       // Add ref on new event (might be same as in initial timer start) to persist across posts
@@ -63,7 +63,7 @@ void ACT_TimeEvt_dispatch(TimeEvt *const te)
   }
 }
 
-/* @private. Initialize the timer part of a Time Event. Not to be called by the application */
+/* @private. Initialize the timer part of a Time ACT_Evt. Not to be called by the application */
 void ACT_Timer_init(TimeEvt *te)
 {
   ACT_Timer *tp = &(te->timer);

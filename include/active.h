@@ -17,7 +17,7 @@
 #define ACT_UPCAST(ptr) ((Active *const)(ptr))
 
 /* Dispatch handler function pointer type for active object implementations */
-typedef void (*DispatchHandler)(Active *me, Event const *const e);
+typedef void (*DispatchHandler)(Active *me, ACT_Evt const *const e);
 
 /* Active object data structure. To be used by active object implementations through polymorphism */
 /**
@@ -50,7 +50,7 @@ struct threadData
 /**
  * @brief Queue related data structures for active object.
  * @param queue Pointer to queue data structure declared by ACTP_Q
- * @param queBuf Pointer to message buffer that holds Event pointers sent to active object declared by ACTP_QBUF
+ * @param queBuf Pointer to message buffer that holds ACT_Evt pointers sent to active object declared by ACTP_QBUF
  * @param maxMsg Maximum number of unprocessed messages that the active object message queue can hold
  */
 struct queueData
@@ -88,9 +88,16 @@ void ACT_eventLoop(Active *me);
  * @param e Pointer to the event to post to the receiving active objects queue
  * @return int Port specific status code
  */
-int ACT_post(Active const *const receiver, Event const *const e);
+int ACT_post(Active const *const receiver, ACT_Evt const *const e);
 
 /* @private: Interface for Active timer to post time back to sender object (delegation)*/
 int ACT_postTimeEvt(TimeEvt *te);
+
+/**
+ * @brief Helper macros
+ *
+ */
+
+#define ACT_ARG_UNUSED(param) (void)(param)
 
 #endif /* ACTIVE_H */

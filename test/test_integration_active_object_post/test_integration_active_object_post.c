@@ -18,24 +18,24 @@ const static threadData tdtest = {.thread = &testT,
 
 enum TestUserSignal
 {
-  TEST_SIG = USER_SIG,
+  TEST_SIG = ACT_USER_SIG,
   TIME_SIG
 };
 
 Active ao;
-Signal testSig, timeSig;
+ACT_Signal testSig, timeSig;
 TimeEvt timeEvt;
 
 static bool wasTestSigReceived = false, wasTimeSigReceived = false;
 
-static void ao_dispatch(Active *me, Event const *const e)
+static void ao_dispatch(Active *me, ACT_Evt const *const e)
 {
-  if ((e->type == SIGNAL) && (EVT_CAST(e, Signal)->sig == TEST_SIG) && (e == EVT_UPCAST(&testSig)))
+  if ((e->type == SIGNAL) && (EVT_CAST(e, ACT_Signal)->sig == TEST_SIG) && (e == EVT_UPCAST(&testSig)))
   {
     wasTestSigReceived = true;
   }
 
-  if ((e->type == SIGNAL) && (EVT_CAST(e, Signal)->sig == TIME_SIG) && (e == EVT_UPCAST(&timeSig)))
+  if ((e->type == SIGNAL) && (EVT_CAST(e, ACT_Signal)->sig == TIME_SIG) && (e == EVT_UPCAST(&timeSig)))
   {
     wasTimeSigReceived = true;
   }

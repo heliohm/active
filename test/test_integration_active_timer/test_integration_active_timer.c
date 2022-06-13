@@ -18,7 +18,7 @@ const static threadData tdtest = {.thread = &testT,
 
 enum TestUserSignal
 {
-  SIGNAL_UNDEFINED = USER_SIG,
+  SIGNAL_UNDEFINED = ACT_USER_SIG,
   ONESHOT_STATIC_STARTSTOP,
   ONESHOT_DYNAMIC_STARTSTOP,
   ONESHOT_STATIC_EXPIRE,
@@ -39,11 +39,11 @@ enum TestUserSignal expectedSignal = SIGNAL_UNDEFINED;
 uint16_t eventsReceived, correctEventsReceived;
 uint32_t expectedMsgPayload = 0;
 
-static void ao_dispatch(Active *me, Event const *const e)
+static void ao_dispatch(Active *me, ACT_Evt const *const e)
 {
 
   // Ignore start signal
-  if (e->type == SIGNAL && EVT_CAST(e, Signal)->sig == START_SIG)
+  if (e->type == SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
   {
     return;
   }
@@ -54,7 +54,7 @@ static void ao_dispatch(Active *me, Event const *const e)
   // Ignore events other than signal type in test
   if (e->type == SIGNAL)
   {
-    Signal *s = EVT_CAST(e, Signal);
+    ACT_Signal *s = EVT_CAST(e, ACT_Signal);
 
     // Count number of expected events
     if (expectedSignal == s->sig)
@@ -83,7 +83,7 @@ static void test_function_timer_static_oneshot_startstop()
 
   expectedSignal = ONESHOT_STATIC_STARTSTOP;
 
-  Signal sig;
+  ACT_Signal sig;
   Signal_init(&sig, &ao, expectedSignal);
 
   TimeEvt te;
@@ -118,7 +118,7 @@ static void test_function_timer_dynamic_oneshot_startstop()
 
   expectedSignal = ONESHOT_DYNAMIC_STARTSTOP;
 
-  Signal *sig;
+  ACT_Signal *sig;
   sig = Signal_new(&ao, ONESHOT_DYNAMIC_STARTSTOP);
 
   TimeEvt *te;
@@ -156,7 +156,7 @@ static void test_function_timer_static_oneshot_expire()
 
   expectedSignal = ONESHOT_STATIC_EXPIRE;
 
-  Signal sig;
+  ACT_Signal sig;
   Signal_init(&sig, &ao, expectedSignal);
 
   TimeEvt te;
@@ -205,7 +205,7 @@ static void test_function_timer_dynamic_oneshot_expire()
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE;
 
-  Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE);
+  ACT_Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE);
 
   TimeEvt *te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
@@ -247,7 +247,7 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_STOP;
 
-  Signal *sig;
+  ACT_Signal *sig;
   TimeEvt *te;
 
   size_t loops = 0;
@@ -282,18 +282,18 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
   TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
-static Event *static_oneshot_expFn(const TimeEvt *const te)
+static ACT_Evt *static_oneshot_expFn(const TimeEvt *const te)
 {
   const static SIGNAL_DEFINE(sig_timer_static_expfn_1, ONESHOT_STATIC_EXPIRE_EXPFN_1);
 
-  Signal *s = EVT_CAST(te->e, Signal);
+  ACT_Signal *s = EVT_CAST(te->e, ACT_Signal);
 
   // Replace event
   if (s->sig == ONESHOT_STATIC_EXPIRE_EXPFN_2)
   {
     return EVT_UPCAST(&sig_timer_static_expfn_1);
   }
-  return (Event *)NULL;
+  return (ACT_Evt *)NULL;
 }
 
 /* Test expiry function is working */
@@ -304,7 +304,7 @@ static void test_function_timer_static_expFn()
 
   expectedSignal = ONESHOT_STATIC_EXPIRE_EXPFN_1;
 
-  Signal sig;
+  ACT_Signal sig;
   Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_1);
 
   TimeEvt te;
@@ -332,10 +332,10 @@ static void test_function_timer_static_expFn()
   TEST_ASSERT_EQUAL_UINT16(2, correctEventsReceived);
 }
 
-static Event *dynamic_oneshot_expFn(const TimeEvt *const te)
+static ACT_Evt *dynamic_oneshot_expFn(const TimeEvt *const te)
 {
 
-  Signal *s = EVT_CAST(te->e, Signal);
+  ACT_Signal *s = EVT_CAST(te->e, ACT_Signal);
 
   // Replace event
   if (s->sig == ONESHOT_DYNAMIC_EXPIRE_EXPFN_2)
@@ -343,7 +343,7 @@ static Event *dynamic_oneshot_expFn(const TimeEvt *const te)
     return EVT_UPCAST(Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1));
   }
   // Default: Don't replace event
-  return (Event *)NULL;
+  return (ACT_Evt *)NULL;
 }
 
 /* Test expiry function is working */
@@ -357,7 +357,7 @@ static void test_function_timer_dynamic_expFn()
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_EXPFN_1;
 
-  Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1);
+  ACT_Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1);
 
   TimeEvt *te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
 
@@ -397,7 +397,7 @@ static void test_function_timer_static_periodic_expire()
 
   expectedSignal = PERIODIC_STATIC_EXPIRE;
 
-  Signal sig;
+  ACT_Signal sig;
   Signal_init(&sig, &ao, PERIODIC_STATIC_EXPIRE);
 
   TimeEvt te;
@@ -439,7 +439,7 @@ static void test_function_timer_dynamic_periodic_expire()
 
   expectedSignal = PERIODIC_DYNAMIC_EXPIRE;
 
-  Signal *sig;
+  ACT_Signal *sig;
   sig = Signal_new(&ao, PERIODIC_DYNAMIC_EXPIRE);
 
   TimeEvt *te;
@@ -480,7 +480,7 @@ static uint16_t header = 0xBABA;
 static uint32_t *writeBuf = buf0;
 static char writeBufIdx = 0;
 
-Event *msgExpFn(const TimeEvt *const te)
+ACT_Evt *msgExpFn(const TimeEvt *const te)
 {
 
   static Message *msg = NULL;

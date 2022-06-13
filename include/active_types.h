@@ -4,10 +4,10 @@
 #include <stdatomic.h>
 
 /* Base event for polymorphism of other objects */
-typedef struct event Event;
-typedef struct timeevt TimeEvt;
-typedef struct signal Signal;
+typedef struct active_event ACT_Evt;
+typedef struct active_signal ACT_Signal;
 typedef struct message Message;
+typedef struct timeevt TimeEvt;
 
 /* Types of events supported by Active framework */
 typedef enum evtType
@@ -16,7 +16,7 @@ typedef enum evtType
   TIMEREVT,
   SIGNAL,
   MESSAGE
-} EvtType;
+} ACT_EvtType;
 
 /* Event memory reference count */
 typedef atomic_ushort refCnt_t;

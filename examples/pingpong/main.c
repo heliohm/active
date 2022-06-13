@@ -42,13 +42,13 @@ const static threadData tdpong = {.thread = &pongT,
                                   .stack_size = pongStackSz};
 
 /* Global signals */
-const Signal pingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = PING};
-const Signal pongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = PONG};
+const ACT_Signal pingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = PING};
+const ACT_Signal pongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = PONG};
 
-const Signal timPingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = TIMEPING};
-const Signal timPongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = TIMEPONG};
+const ACT_Signal timPingSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_pong), ._dynamic = false}, .sig = TIMEPING};
+const ACT_Signal timPongSignal = {.super = {.type = SIGNAL, ._sender = ACT_UPCAST(&ao_ping), ._dynamic = false}, .sig = TIMEPONG};
 
-Event *expiryFn(TimeEvt const *const te)
+ACT_Evt *expiryFn(TimeEvt const *const te)
 {
   if (te->e == EVT_UPCAST(&timPongSignal))
   {
@@ -61,9 +61,9 @@ Event *expiryFn(TimeEvt const *const te)
 int main(void)
 {
 
-  Signal *s = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
-  Signal *s2 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
-  Signal *s3 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  ACT_Signal *s = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  ACT_Signal *s2 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
+  ACT_Signal *s3 = Signal_new(ACT_UPCAST(&ao_pong), PINGPONG);
 
   PingPong_init(&ao_ping, &qdping, &tdping);
   ACTP_start(ACT_UPCAST(&ao_ping));

@@ -51,10 +51,10 @@ void ACT_TimeEvt_dispatch(TimeEvt *te);
  * @param te The time event that expired
  *
  * @return Pointer to event that will replace existing attached event. Existing attached dynamic events are freed.
- * @return (Event*)NULL - Indicate to framework to keep the existing attached event.
+ * @return (ACT_Evt*)NULL - Indicate to framework to keep the existing attached event.
  *
  */
-typedef Event *(*TimerExpiryHandler)(TimeEvt const *const te);
+typedef ACT_Evt *(*TimerExpiryHandler)(TimeEvt const *const te);
 
 /**
  * @brief Start a time event. The attached event will be posted when the timer expires

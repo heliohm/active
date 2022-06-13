@@ -7,7 +7,7 @@
 
 enum AppUserSignal
 {
-  PING = USER_SIG,
+  PING = ACT_USER_SIG,
   PONG,
   PINGPONG,
   TIMEPING,

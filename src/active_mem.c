@@ -8,7 +8,7 @@ struct mempoolData
 */
 
 static ACTP_MEMPOOL_DEFINE(TimeEvt_Mem, TimeEvt, ACT_MEM_NUM_TIMEEVT);
-static ACTP_MEMPOOL_DEFINE(Signal_Mem, Signal, ACT_MEM_NUM_SIGNALS);
+static ACTP_MEMPOOL_DEFINE(Signal_Mem, ACT_Signal, ACT_MEM_NUM_SIGNALS);
 static ACTP_MEMPOOL_DEFINE(Message_Mem, Message, ACT_MEM_NUM_MESSAGES);
 // static ACTP_MEMPOOL_DEFINE(MemPool_Mem, ACT_Mempool, ACT_MEM_NUM_OBJPOOLS);
 
@@ -27,43 +27,43 @@ uint32_t ACT_mem_TimeEvt_getUsed()
 {
   return ACTP_MEMPOOL_USED_GET(&TimeEvt_Mem);
 }
-static bool ACT_mem_isDynamic(const Event *const e)
+static bool ACT_mem_isDynamic(const ACT_Evt *const e)
 {
   return e->_dynamic;
 }
 
-void ACT_mem_refinc(const Event *e)
+void ACT_mem_refinc(const ACT_Evt *e)
 {
   if (ACT_mem_isDynamic(e))
   {
     atomic_fetch_add((refCnt_t *)&(e->_refcnt), 1);
-    ACTP_ASSERT(atomic_load(&(e->_refcnt)) != 0, "Overflow in reference counter. Event ptr: %p", (void *)e);
+    ACTP_ASSERT(atomic_load(&(e->_refcnt)) != 0, "Overflow in reference counter. ACT_Evt ptr: %p", (void *)e);
   }
 }
 
-void ACT_mem_refdec(const Event *e)
+void ACT_mem_refdec(const ACT_Evt *e)
 {
   if (ACT_mem_isDynamic(e))
   {
-    ACTP_ASSERT(atomic_load(&(e->_refcnt)) > 0, "Underflow in reference counter. Event ptr: %p", (void *)e);
+    ACTP_ASSERT(atomic_load(&(e->_refcnt)) > 0, "Underflow in reference counter. ACT_Evt ptr: %p", (void *)e);
     atomic_fetch_sub((refCnt_t *)&(e->_refcnt), 1);
     ACT_mem_gc(e);
   }
 }
 
-refCnt_t ACT_mem_getRefCount(const Event *const e)
+refCnt_t ACT_mem_getRefCount(const ACT_Evt *const e)
 {
   return atomic_load(&e->_refcnt);
 }
 
-static void ACT_mem_setDynamic(const Event *const e)
+static void ACT_mem_setDynamic(const ACT_Evt *const e)
 {
   // Cast away const, set dynamic flag to true
   bool *dyn = (bool *)&(e->_dynamic);
   *dyn = true;
 }
 
-void ACT_mem_gc(const Event *e)
+void ACT_mem_gc(const ACT_Evt *e)
 {
   if (ACT_mem_getRefCount(e) != 0)
   {
@@ -99,10 +99,10 @@ void ACT_mem_gc(const Event *e)
   }
 }
 
-Signal *Signal_new(Active const *const me, uint16_t sig)
+ACT_Signal *Signal_new(Active const *const me, uint16_t sig)
 {
 
-  Signal *s = NULL;
+  ACT_Signal *s = NULL;
   int status = ACTP_MEMPOOL_ALLOC(&Signal_Mem, &s);
   ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Signal");
 
@@ -132,8 +132,7 @@ Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayloa
   return m;
 }
 
-// Event to fire on one-shot or periodic timer. For Pub-Sub messages, receiver should be set to NULL.
-TimeEvt *TimeEvt_new(Event *const e, const Active *const me, const Active *const receiver, TimerExpiryHandler expFn)
+TimeEvt *TimeEvt_new(ACT_Evt *const e, const Active *const me, const Active *const receiver, TimerExpiryHandler expFn)
 {
 
   TimeEvt *te = NULL;

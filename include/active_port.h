@@ -40,7 +40,7 @@ Used by application to set up a queue */
 
 /* Declare a message queue buffer with name bufName and room for maxMsg messages.
 Used by application to set up a buffer for the queue */
-#define ACTP_QBUF(bufSym, maxMsg) char alignas(alignof(Event *)) bufSym[sizeof(Event *) * maxMsg]
+#define ACTP_QBUF(bufSym, maxMsg) char alignas(alignof(ACT_Evt *)) bufSym[sizeof(ACT_Evt *) * maxMsg]
 
 /* @internal - Get an entry from the message queue. Used by active framework to get Events in Active objects.
 Function blocks Active object forever until message is put on its queue  */
