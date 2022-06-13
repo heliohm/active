@@ -14,6 +14,10 @@ static void Event_init(Event *const e, Active const *const me, EvtType t)
   // Cast away const to clear dynamic field
   bool *dyn = (bool *)&(e->_dynamic);
   *dyn = false;
+
+  // Cast away const to clear reference count
+  refCnt_t *cnt = (refCnt_t *)&(e->_refcnt);
+  *cnt = 0;
 }
 void Signal_init(Signal *s, Active const *const me, uint16_t sig)
 {

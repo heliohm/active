@@ -61,8 +61,6 @@ static void ACT_mem_setDynamic(const Event *const e)
   // Cast away const, set dynamic flag to true
   bool *dyn = (bool *)&(e->_dynamic);
   *dyn = true;
-
-  atomic_init((refCnt_t *)&(e->_refcnt), 0);
 }
 
 void ACT_mem_gc(const Event *e)
@@ -120,7 +118,7 @@ Signal *Signal_new(Active const *const me, uint16_t sig)
 
 Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen)
 {
-  Message *m;
+  Message *m = NULL;
   int status = ACTP_MEMPOOL_ALLOC(&Message_Mem, &m);
   ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Message");
 
