@@ -112,7 +112,7 @@ Signal *Signal_new(Active const *const me, uint16_t sig)
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(s));
 
-  ARG_UNUSED(status);
+  ACT_ARG_UNUSED(status);
   return s;
 }
 
@@ -128,7 +128,7 @@ Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayloa
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(m));
 
-  ARG_UNUSED(status);
+  ACT_ARG_UNUSED(status);
   return m;
 }
 
@@ -145,7 +145,7 @@ TimeEvt *TimeEvt_new(Event *const e, const Active *const me, const Active *const
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(te));
 
-  ARG_UNUSED(status);
+  ACT_ARG_UNUSED(status);
   return te;
 }
 /*
@@ -159,8 +159,8 @@ ACT_Mempool *ACT_Mempool_new(void *memBuf, size_t objSize, size_t numObjects)
   int status_init = k_mem_slab_init(&(mem->impl), memBuf, objSize, numObjects);
   ACTP_ASSERT(status_init == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to init new Memory pool");
 
-  ARG_UNUSED(status_pool);
-  ARG_UNUSED(status_init);
+  ACT_ARG_UNUSED(status_pool);
+  ACT_ARG_UNUSED(status_init);
 
   return mem;
 }
@@ -176,7 +176,7 @@ void *Object_new(ACT_Mempool *poolptr)
   int status = k_mem_slab_alloc(&(poolptr->impl), &obj, K_NO_WAIT);
   ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Object");
 
-  ARG_UNUSED(status);
+  ACT_ARG_UNUSED(status);
   return obj;
 }
 */

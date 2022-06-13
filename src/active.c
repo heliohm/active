@@ -16,7 +16,7 @@ void ACT_eventLoop(Active *const me)
     int status = ACTP_Q_GET(me->queue, &e);
 
     ACTP_ASSERT(status == ACTP_Q_GET_SUCCESS_STATUS, "Event was not retrieved. Error: %i", status);
-    ARG_UNUSED(status);
+    ACT_ARG_UNUSED(status);
 
     ACTP_ASSERT(e != NULL, "Event object is null");
 
