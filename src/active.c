@@ -39,7 +39,7 @@ void ACT_eventLoop(Active *const me)
   }
 }
 
-inline int ACT_post(Active const *const receiver, Event const *const e)
+int ACT_post(Active const *const receiver, Event const *const e)
 {
   ACTP_ASSERT(receiver != NULL, "Receiver is null");
   ACTP_ASSERT(e != NULL, "Event object is null");
