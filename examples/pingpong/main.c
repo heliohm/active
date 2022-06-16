@@ -53,7 +53,7 @@ ACT_Evt *expiryFn(ACT_TimEvt const *const te)
 
   return EVT_UPCAST(&timPongSignal);
 }
-#ifndef PIO_UNIT_TESTING
+
 int main(void)
 {
 
@@ -96,4 +96,3 @@ int main(void)
 
   return 0;
 }
-#endif
