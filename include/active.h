@@ -17,31 +17,31 @@
 #define ACT_UPCAST(ptr) ((Active *const)(ptr))
 
 /* Dispatch handler function pointer type for active object implementations */
-typedef void (*DispatchHandler)(Active *me, ACT_Evt const *const e);
+typedef void (*ACT_DispatchFn)(Active *me, ACT_Evt const *const e);
 
 /* Active object data structure. To be used by active object implementations through polymorphism */
 /**
  * @brief Active object data structure. Do not access from application
  *
  */
-struct active
+struct active_object
 {
-  ACTP_THREADPTR(thread);
-  ACTP_QPTR(queue);
-  DispatchHandler dispatch;
+  ACT_THREADPTR(thread);
+  ACT_QPTR(queue);
+  ACT_DispatchFn dispatch;
 };
 
 /**
  * @brief Thread/task related data structures for active object.
- * @param thread Pointer to thread data structure declared by ACTP_THREAD macro
- * @param stack Pointer to task stack declared by ACTP_THREAD_STACK
- * @param stack_size Size of task stack calculated by ACTP_THREAD_STACK_SIZE
+ * @param thread Pointer to thread data structure declared by ACT_THREAD macro
+ * @param stack Pointer to task stack declared by ACT_THREAD_STACK
+ * @param stack_size Size of task stack calculated by ACT_THREAD_STACK_SIZE
  * @param pri Task priority (port specific)
  */
-struct threadData
+struct active_threadData
 {
-  ACTP_THREADPTR(thread);
-  ACTP_THREAD_STACKPTR(stack);
+  ACT_THREADPTR(thread);
+  ACT_THREAD_STACKPTR(stack);
   size_t stack_size;
   int pri;
 };
@@ -49,13 +49,13 @@ struct threadData
 /* Queue data structures to set up an active object */
 /**
  * @brief Queue related data structures for active object.
- * @param queue Pointer to queue data structure declared by ACTP_Q
- * @param queBuf Pointer to message buffer that holds ACT_Evt pointers sent to active object declared by ACTP_QBUF
+ * @param queue Pointer to queue data structure declared by ACT_Q
+ * @param queBuf Pointer to message buffer that holds ACT_Evt pointers sent to active object declared by ACT_QBUF
  * @param maxMsg Maximum number of unprocessed messages that the active object message queue can hold
  */
-struct queueData
+struct active_queueData
 {
-  ACTP_QPTR(queue);
+  ACT_QPTR(queue);
   char *queBuf;
   size_t maxMsg;
 };
@@ -68,17 +68,17 @@ struct queueData
  * @param qd Pointer to queue related data needed by active object
  * @param td Pointer to thread/task related data needed by active object
  */
-void ACTP_init(Active *const me, DispatchHandler dispatch, queueData const *qd, threadData const *td);
+void ACT_init(Active *const me, ACT_DispatchFn dispatch, ACT_QueueData const *qd, ACT_ThreadData const *td);
 /**
  * @brief Start the execution of an active object. When the active object starts, the dispatch function will
  * receive a signal with START_SIG payload that can be used to initialize the application.
  *
  * @param me Pointer to the active object that should be started
  */
-void ACTP_start(Active *const me);
+void ACT_start(Active *const me);
 
-/* @private - Used by Active framework ports */
-void ACT_eventLoop(Active *me);
+/* @private - Thread function for all active obects. Used by Active framework ports */
+void ACT_threadFn(Active *me);
 
 /* Post event directly to receiver */
 /**
@@ -88,10 +88,10 @@ void ACT_eventLoop(Active *me);
  * @param e Pointer to the event to post to the receiving active objects queue
  * @return int Port specific status code
  */
-int ACT_post(Active const *const receiver, ACT_Evt const *const e);
+int ACT_postEvt(Active const *const receiver, ACT_Evt const *const e);
 
 /* @private: Interface for Active timer to post time back to sender object (delegation)*/
-int ACT_postTimeEvt(TimeEvt *te);
+int ACT_postTimEvt(ACT_TimEvt *te);
 
 /**
  * @brief Helper macros

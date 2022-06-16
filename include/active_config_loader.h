@@ -4,9 +4,11 @@
 #if defined __has_include
 #if __has_include(<active_config.h>)
 #include <active_config.h>
+#else
+#warning "active_config.h file not found during compilation, using minimal defaults for tests. Check include directories."
 #endif
 #else
-#warning "active_config.h file not found during compilation, using defaults. Check __has_include macro and include directories for active_config.h"
+#warning __has_include macro note supported in compiler. Edit this file to configure library.
 #endif
 
 /**
@@ -29,4 +31,14 @@
 #define ACT_MEM_NUM_OBJPOOLS 1
 #endif
 */
+
+/**
+ * @brief Active debug printing with ACT_DBGPRINT() - set to 0 to disable
+ *
+ */
+
+#ifndef ACT_CFG_DEBUG_PRINT
+#define ACT_CFG_DEBUG_PRINT 1
+#endif
+
 #endif /* _ACTIVE_CONFIG_LOADER_H */

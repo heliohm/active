@@ -1,31 +1,31 @@
 #include <active.h>
 
 /*
-struct mempoolData
+struct active_mempoolData
 {
-  ACTP_MEMPOOL(impl)
+  ACT_MEMPOOL(impl)
 };
 */
 
-static ACTP_MEMPOOL_DEFINE(TimeEvt_Mem, TimeEvt, ACT_MEM_NUM_TIMEEVT);
-static ACTP_MEMPOOL_DEFINE(Signal_Mem, ACT_Signal, ACT_MEM_NUM_SIGNALS);
-static ACTP_MEMPOOL_DEFINE(Message_Mem, Message, ACT_MEM_NUM_MESSAGES);
-// static ACTP_MEMPOOL_DEFINE(MemPool_Mem, ACT_Mempool, ACT_MEM_NUM_OBJPOOLS);
+static ACT_MEMPOOL_DEFINE(Signal_Mem, ACT_Signal, ACT_MEM_NUM_SIGNALS);
+static ACT_MEMPOOL_DEFINE(Message_Mem, ACT_Message, ACT_MEM_NUM_MESSAGES);
+static ACT_MEMPOOL_DEFINE(TimeEvt_Mem, ACT_TimEvt, ACT_MEM_NUM_TIMEEVT);
+// static ACT_MEMPOOL_DEFINE(MemPool_Mem, ACT_Mempool, ACT_MEM_NUM_OBJPOOLS);
 
 /* @private - used by Active framework tests */
 uint32_t ACT_mem_Signal_getUsed()
 {
-  return ACTP_MEMPOOL_USED_GET(&Signal_Mem);
+  return ACT_MEMPOOL_USED_GET(&Signal_Mem);
 }
 /* @private - used by Active framework tests */
 uint32_t ACT_mem_Message_getUsed()
 {
-  return ACTP_MEMPOOL_USED_GET(&Message_Mem);
+  return ACT_MEMPOOL_USED_GET(&Message_Mem);
 }
 /* @private - used by Active framework tests */
 uint32_t ACT_mem_TimeEvt_getUsed()
 {
-  return ACTP_MEMPOOL_USED_GET(&TimeEvt_Mem);
+  return ACT_MEMPOOL_USED_GET(&TimeEvt_Mem);
 }
 static bool ACT_mem_isDynamic(const ACT_Evt *const e)
 {
@@ -37,7 +37,7 @@ void ACT_mem_refinc(const ACT_Evt *e)
   if (ACT_mem_isDynamic(e))
   {
     atomic_fetch_add((refCnt_t *)&(e->_refcnt), 1);
-    ACTP_ASSERT(atomic_load(&(e->_refcnt)) != 0, "Overflow in reference counter. ACT_Evt ptr: %p", (void *)e);
+    ACT_ASSERT(atomic_load(&(e->_refcnt)) != 0, "Overflow in reference counter. ACT_Evt ptr: %p", (void *)e);
   }
 }
 
@@ -45,7 +45,7 @@ void ACT_mem_refdec(const ACT_Evt *e)
 {
   if (ACT_mem_isDynamic(e))
   {
-    ACTP_ASSERT(atomic_load(&(e->_refcnt)) > 0, "Underflow in reference counter. ACT_Evt ptr: %p", (void *)e);
+    ACT_ASSERT(atomic_load(&(e->_refcnt)) > 0, "Underflow in reference counter. ACT_Evt ptr: %p", (void *)e);
     atomic_fetch_sub((refCnt_t *)&(e->_refcnt), 1);
     ACT_mem_gc(e);
   }
@@ -76,38 +76,38 @@ void ACT_mem_gc(const ACT_Evt *e)
 
   switch (e->type)
   {
-  case SIGNAL:
+  case ACT_SIGNAL:
   {
-    ACTP_ASSERT(ACTP_MEMPOOL_USED_GET(&Signal_Mem) > 0, "No Signal events to free");
-    ACTP_MEMPOOL_FREE(&Signal_Mem, &e);
+    ACT_ASSERT(ACT_MEMPOOL_USED_GET(&Signal_Mem) > 0, "No Signal events to free");
+    ACT_MEMPOOL_FREE(&Signal_Mem, &e);
     break;
   }
-  case MESSAGE:
+  case ACT_MESSAGE:
   {
-    ACTP_ASSERT(ACTP_MEMPOOL_USED_GET(&Message_Mem) > 0, "No Message events to free");
-    ACTP_MEMPOOL_FREE(&Message_Mem, &e);
+    ACT_ASSERT(ACT_MEMPOOL_USED_GET(&Message_Mem) > 0, "No Message events to free");
+    ACT_MEMPOOL_FREE(&Message_Mem, &e);
     break;
   }
-  case TIMEREVT:
+  case ACT_TIMEVT:
   {
-    ACTP_ASSERT(ACTP_MEMPOOL_USED_GET(&TimeEvt_Mem) > 0, "No time events to free");
-    ACTP_MEMPOOL_FREE(&TimeEvt_Mem, &e);
+    ACT_ASSERT(ACT_MEMPOOL_USED_GET(&TimeEvt_Mem) > 0, "No time events to free");
+    ACT_MEMPOOL_FREE(&TimeEvt_Mem, &e);
     break;
   }
   default:
-    ACTP_ASSERT(0, "Invalid event type");
+    ACT_ASSERT(0, "Invalid event type");
   }
 }
 
-ACT_Signal *Signal_new(Active const *const me, uint16_t sig)
+ACT_Signal *ACT_Signal_new(Active const *const me, uint16_t sig)
 {
 
   ACT_Signal *s = NULL;
-  int status = ACTP_MEMPOOL_ALLOC(&Signal_Mem, &s);
-  ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Signal");
+  int status = ACT_MEMPOOL_ALLOC(&Signal_Mem, &s);
+  ACT_ASSERT(status == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Signal");
 
   // Initialize signal as static
-  Signal_init(s, me, sig);
+  ACT_Signal_init(s, me, sig);
 
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(s));
@@ -116,14 +116,14 @@ ACT_Signal *Signal_new(Active const *const me, uint16_t sig)
   return s;
 }
 
-Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen)
+ACT_Message *ACT_Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen)
 {
-  Message *m = NULL;
-  int status = ACTP_MEMPOOL_ALLOC(&Message_Mem, &m);
-  ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Message");
+  ACT_Message *m = NULL;
+  int status = ACT_MEMPOOL_ALLOC(&Message_Mem, &m);
+  ACT_ASSERT(status == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Message");
 
   // Initialize message as static
-  Message_init(m, me, msgHeader, msgPayload, payloadLen);
+  ACT_Message_init(m, me, msgHeader, msgPayload, payloadLen);
 
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(m));
@@ -132,14 +132,14 @@ Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayloa
   return m;
 }
 
-TimeEvt *TimeEvt_new(ACT_Evt *const e, const Active *const me, const Active *const receiver, TimerExpiryHandler expFn)
+ACT_TimEvt *ACT_TimEvt_new(ACT_Evt *const e, const Active *const me, const Active *const receiver, ACT_TimerExpiryFn expFn)
 {
 
-  TimeEvt *te = NULL;
-  int status = ACTP_MEMPOOL_ALLOC(&TimeEvt_Mem, &te);
-  ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Time Event");
+  ACT_TimEvt *te = NULL;
+  int status = ACT_MEMPOOL_ALLOC(&TimeEvt_Mem, &te);
+  ACT_ASSERT(status == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Time Event");
 
-  TimeEvt_init(te, me, e, receiver, expFn);
+  ACT_TimEvt_init(te, me, e, receiver, expFn);
 
   // Set event dynamic *after* initialization
   ACT_mem_setDynamic(EVT_UPCAST(te));
@@ -152,11 +152,11 @@ ACT_Mempool *ACT_Mempool_new(void *memBuf, size_t objSize, size_t numObjects)
 {
 
   ACT_Mempool *mem = NULL;
-  int status_pool = ACTP_MEMPOOL_ALLOC(&MemPool_Mem, &mem);
-  ACTP_ASSERT(status_pool == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Memory pool");
+  int status_pool = ACT_MEMPOOL_ALLOC(&MemPool_Mem, &mem);
+  ACT_ASSERT(status_pool == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Memory pool");
 
   int status_init = k_mem_slab_init(&(mem->impl), memBuf, objSize, numObjects);
-  ACTP_ASSERT(status_init == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to init new Memory pool");
+  ACT_ASSERT(status_init == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to init new Memory pool");
 
   ACT_ARG_UNUSED(status_pool);
   ACT_ARG_UNUSED(status_init);
@@ -173,7 +173,7 @@ void *Object_new(ACT_Mempool *poolptr)
 {
   void *obj;
   int status = k_mem_slab_alloc(&(poolptr->impl), &obj, K_NO_WAIT);
-  ACTP_ASSERT(status == ACTP_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Object");
+  ACT_ASSERT(status == ACT_MEMPOOL_ALLOC_SUCCESS_STATUS, "Failed to allocate new Object");
 
   ACT_ARG_UNUSED(status);
   return obj;

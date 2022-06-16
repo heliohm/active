@@ -5,26 +5,26 @@ static void ao_emptyDispatch(Active *me, ACT_Evt const *const e)
 {
 }
 
-static ACTP_QBUF(testQBuf, 1);
-static ACTP_Q(testQ);
-static ACTP_THREAD(testT);
-static ACTP_THREAD_STACK_DEFINE(testTStack, 512);
-static ACTP_THREAD_STACK_SIZE(testTStackSz, testTStack);
+static ACT_QBUF(testQBuf, 1);
+static ACT_Q(testQ);
+static ACT_THREAD(testT);
+static ACT_THREAD_STACK_DEFINE(testTStack, 512);
+static ACT_THREAD_STACK_SIZE(testTStackSz, testTStack);
 
-const static queueData qdtest = {.maxMsg = 10,
-                                 .queBuf = testQBuf,
-                                 .queue = &testQ};
+const static ACT_QueueData qdtest = {.maxMsg = 10,
+                                     .queBuf = testQBuf,
+                                     .queue = &testQ};
 
-const static threadData tdtest = {.thread = &testT,
-                                  .pri = 1,
-                                  .stack = testTStack,
-                                  .stack_size = testTStackSz};
+const static ACT_ThreadData tdtest = {.thread = &testT,
+                                      .pri = 1,
+                                      .stack = testTStack,
+                                      .stack_size = testTStackSz};
 
 static bool wasInitSigReceived = false;
 
 static void ao_initDispatch(Active *me, ACT_Evt const *const e)
 {
-  if (e->type == SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
+  if (e->type == ACT_SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
   {
     wasInitSigReceived = true;
   }
@@ -33,7 +33,7 @@ static void ao_initDispatch(Active *me, ACT_Evt const *const e)
 static void test_function_active_init()
 {
   Active ao;
-  ACTP_init(&ao, ao_emptyDispatch, &qdtest, &tdtest);
+  ACT_init(&ao, ao_emptyDispatch, &qdtest, &tdtest);
 
   TEST_ASSERT_EQUAL(ao_emptyDispatch, ao.dispatch);
   TEST_ASSERT_EQUAL(qdtest.queue, ao.queue);
@@ -43,15 +43,15 @@ static void test_function_active_start()
 {
   Active ao;
   // Todo: Refactor test to terminate thread after test
-  ACTP_init(&ao, ao_initDispatch, &qdtest, &tdtest);
-  ACTP_start(&ao);
-  k_msleep(50);
+  ACT_init(&ao, ao_initDispatch, &qdtest, &tdtest);
+  ACT_start(&ao);
+  ACT_SLEEPMS(50);
   TEST_ASSERT_TRUE(wasInitSigReceived);
 }
 
 void main()
 {
-  k_msleep(2000);
+  ACT_SLEEPMS(2000);
 
   UNITY_BEGIN();
 

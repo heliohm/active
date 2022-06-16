@@ -11,11 +11,11 @@
 #include <active_timer.h>
 
 /* Allocate and initialize new signal from the Active global signal memory pool */
-ACT_Signal *Signal_new(Active const *const me, uint16_t sig);
+ACT_Signal *ACT_Signal_new(Active const *const me, uint16_t sig);
 /* Allocate and initialize new message from the Active global message memory pool */
-Message *Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen);
+ACT_Message *ACT_Message_new(Active const *const me, uint16_t msgHeader, void *msgPayload, uint16_t payloadLen);
 /* Allocate and initialize new time event from the Active global time event memory pool */
-TimeEvt *TimeEvt_new(ACT_Evt *const e, const Active *const me, const Active *const receiver, TimerExpiryHandler expFn);
+ACT_TimEvt *ACT_TimEvt_new(ACT_Evt *const e, const Active *const me, const Active *const receiver, ACT_TimerExpiryFn expFn);
 
 /* Allocate memory pool to let active objects create memory pools for message payloads.
 The memory buffer provided by the user must be aligned to an N-byte boundary, where N is a power of 2

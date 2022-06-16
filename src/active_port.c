@@ -14,25 +14,25 @@ ACT_CASSERT(alignof(ACT_Evt *) == 4, "Alignment of ACT_Evt pointer type must be 
 /* Zephyr limitations on memory slab alignment and object size:
 https://docs.zephyrproject.org/latest/kernel/memory_management/slabs.html */
 
-ACT_CASSERT(sizeof(TimeEvt) == 96, "TimeEvt type is not the right size.");
-ACT_CASSERT(alignof(TimeEvt) == 8, "Alignment TimeEvt type");
+ACT_CASSERT(sizeof(ACT_TimEvt) == 96, "ACT_TimEvt type is not the right size.");
+ACT_CASSERT(alignof(ACT_TimEvt) == 8, "Alignment ACT_TimEvt type");
 
-ACT_CASSERT(sizeof(Message) == 20, "Message type is not the right size.");
-ACT_CASSERT(alignof(Message) == 4, "Alignment Message type");
+ACT_CASSERT(sizeof(ACT_Message) == 20, "ACT_Message type is not the right size.");
+ACT_CASSERT(alignof(ACT_Message) == 4, "Alignment ACT_Message type");
 
-ACT_CASSERT(sizeof(ACT_Signal) == 16, "Signal type is not the right size.");
-ACT_CASSERT(alignof(ACT_Signal) == 4, "Alignment Signal type");
+ACT_CASSERT(sizeof(ACT_Signal) == 16, "ACT_Signal type is not the right size.");
+ACT_CASSERT(alignof(ACT_Signal) == 4, "Alignment ACT_Signal type");
 
 /* Zephyr thread entry function */
 static void active_entry(void *arg1, void *arg2, void *arg3)
 {
-  ACT_eventLoop((Active *const)arg1);
+  ACT_threadFn((Active *const)arg1);
 }
 
-void ACTP_init(Active *const me, DispatchHandler dispatch, queueData const *qd, threadData const *td)
+void ACT_init(Active *const me, ACT_DispatchFn dispatch, ACT_QueueData const *qd, ACT_ThreadData const *td)
 {
-  ACTP_ASSERT(me != NULL, "Active object is null)");
-  ACTP_ASSERT(dispatch != NULL, "Dispatch handler is null");
+  ACT_ASSERT(me != NULL, "Active object is null)");
+  ACT_ASSERT(dispatch != NULL, "Dispatch handler is null");
 
   me->dispatch = dispatch;
 
@@ -42,14 +42,14 @@ void ACTP_init(Active *const me, DispatchHandler dispatch, queueData const *qd, 
   me->thread = k_thread_create(td->thread, td->stack, td->stack_size, active_entry, (void *)me, NULL, NULL, td->pri, 0, K_FOREVER);
 }
 
-void ACTP_start(Active *const me)
+void ACT_start(Active *const me)
 {
   k_thread_start(me->thread);
 }
 
-void ACTP_TimerExpiryFn(ACTP_TIMERPTR(nativeTimerPtr))
+void ACT_NativeTimerExpiryFn(ACT_TIMERPTR(nativeTimerPtr))
 {
-  TimeEvt *te = (TimeEvt *)ACTP_TIMER_PARAM_GET(nativeTimerPtr);
+  ACT_TimEvt *te = (ACT_TimEvt *)ACT_TIMER_PARAM_GET(nativeTimerPtr);
   ACT_Timer_expiryCB(te);
 }
 

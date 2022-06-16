@@ -96,7 +96,7 @@ struct pingpong
   PingPong *pingpong;
 };
 
-void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td, PingPong *pp);
+void PingPong_init(PingPong *const me, ACT_QueueData const *qd, ACT_ThreadData const *td, PingPong *pp);
 
 #endif
 ```
@@ -110,9 +110,9 @@ Then, implement the init function for the Active object and the dispatch functio
 static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
 {
   PingPong *p = (PingPong *)me;
-  if (e->type == SIGNAL)
+  if (e->type == ACT_SIGNAL)
   {
-    uint16_t sig = EVT_CAST(e, Signal)->sig;
+    uint16_t sig = EVT_CAST(e, ACT_Signal)->sig;
     switch (sig)
     {
       case START_SIG:
@@ -128,9 +128,9 @@ static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
   }
 }
 
-void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td, PingPong *pp)
+void PingPong_init(PingPong *const me, ACT_QueueData const *qd, ACT_ThreadData const *td, PingPong *pp)
 {
-  ACTP_init(&(me->super), PingPong_dispatch, qd, td);
+  ACT_init(&(me->super), PingPong_dispatch, qd, td);
   me->pingpong = pp; /* Example private data structure */
 }
 ```
@@ -146,17 +146,17 @@ PingPong ping, pong;
 
 #define MAX_MSG 10
 
-ACTP_QBUF(pingQbuf, MAX_MSG);
-ACTP_Q(pingQ);
-ACTP_THREAD(pingT);
-ACTP_THREAD_STACK_DEFINE(pingStack, 512);
-ACTP_THREAD_STACK_SIZE(pingStackSz, pingStack);
+ACT_QBUF(pingQbuf, MAX_MSG);
+ACT_Q(pingQ);
+ACT_THREAD(pingT);
+ACT_THREAD_STACK_DEFINE(pingStack, 512);
+ACT_THREAD_STACK_SIZE(pingStackSz, pingStack);
 
-const static queueData qdping = {.maxMsg = MAX_MSG,
+const static ACT_QueueData qdping = {.maxMsg = MAX_MSG,
                                  .queBuf = pingQbuf,
                                  .queue = &pingQ};
 
-const static threadData tdping = {.thread = &pingT,
+const static ACT_ThreadData tdping = {.thread = &pingT,
                                   .pri = 1,
                                   .stack = pingStack,
                                   .stack_size = pingStackSz};
@@ -176,9 +176,9 @@ int main(void)
 
 ### Start active objects
 
-After Active objects are initialized, they are ready to be started. When an Active object is started, its dispatch function will immediately receive a `Signal` event with value START_SIG.
+After Active objects are initialized, they are ready to be started. When an Active object is started, its dispatch function will immediately receive a `ACT_Signal` event with value START_SIG.
 
-An Active object is typically either started by the `main()` function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `ACTP_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
+An Active object is typically either started by the `main()` function upon HW initialization being done, or by initializing HW using START_SIG and waiting for interrupts or a timeout (using time events). The application needs to ensure that all Active objects are initialized using the `ACT_init` function before they start sending events to one another. Events that are sent to an Active object are not processed until the Active object is started, but rather remains in the queue.
  
  ```C
 int main(void)
@@ -186,8 +186,8 @@ int main(void)
   PingPong_init(&ping, &qdping, &tdping, &pong);
   PingPong_init(&pong, &qdpong, &tdpong, &ping);
 
-  ACTP_start(ACT_UPCAST(&ping));
-  ACTP_start(ACT_UPCAST(&pong));
+  ACT_start(ACT_UPCAST(&ping));
+  ACT_start(ACT_UPCAST(&pong));
   
 }
 
@@ -222,7 +222,7 @@ Pool sizes can be found through analyzing the application and monitoring the max
 
 ### Posting events
 
-An event is posted using the `ACT_post` function:
+An event is posted using the `ACT_postEvt` function:
 
 ```C
 /* pingpong.c */
@@ -235,16 +235,16 @@ enum AppUserSignal
   PONG
 };
 
-static const SIGNAL_DEFINE(pingSig, PING);
-static const SIGNAL_DEFINE(pongSig, PONG);
+static const ACT_SIGNAL_DEFINE(pingSig, PING);
+static const ACT_SIGNAL_DEFINE(pongSig, PONG);
 
 static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
 {
   PingPong *p = (PingPong *)me; /* To access internal data */
 
-  if (e->type == SIGNAL)
+  if (e->type == ACT_SIGNAL)
   {
-    uint16_t sig = EVT_CAST(e, Signal)->sig;
+    uint16_t sig = EVT_CAST(e, ACT_Signal)->sig;
     switch (sig)
     {
       case START_SIG:
@@ -254,12 +254,12 @@ static void PingPong_dispatch(Active *const me, ACT_Evt const *const e)
       }
       case PING:
       {
-        ACT_post(me, EVT_UPCAST(&pongSig));
+        ACT_postEvt(me, EVT_UPCAST(&pongSig));
         break;
       }
       case PONG:
       {
-        ACT_post(me, EVT_UPCAST(&pingSig));
+        ACT_postEvt(me, EVT_UPCAST(&pingSig));
         break;
       }
       default:
@@ -301,7 +301,7 @@ Creating a time event takes the following arguments:
 - The Active object `receiver`, which will receive the attached event
 - An application defined expiry function that can be used to set or replace the attached event before it is being posted at expiry.
 
-Time events can either be declared statically in the application and initialized by `TimeEvt_init` or created dynamically by `TimeEvt_new`.
+Time events can either be declared statically in the application and initialized by `ACT_TimEvt_init` or created dynamically by `ACT_TimEvt_new`.
 The application can freely mix dynamic and static events between the time event and attached event.
 
 A Time event is started by calling `ACT_TimeEvt_start`, with arguments in milliseconds for initial expiry and subsequent timeouts for periodic expiry.
@@ -330,10 +330,10 @@ Periodic events using dynamic attached events can register an expiry function to
 
 *TODO: Not supported yet!*
 
-Dynamic payloads can be used with for example the Message event type to enable a data pipe between active objects.
+Dynamic payloads can be used with for example the ACT_Message event type to enable a data pipe between active objects.
 
 Dynamic payloads can be used together with dynamic events only.
-If the application is utilizing dynamic payloads in events created with `Object_new()`, (such as `Message->payload`), the Active object can register a free function during Active object initialiation that will be called just before a dynamic event is freed. This allows the Active object to know that all receivers are done processing the event and the payload object can safely be freed.
+If the application is utilizing dynamic payloads in events created with `Object_new()`, (such as `ACT_Message->payload`), the Active object can register a free function during Active object initialiation that will be called just before a dynamic event is freed. This allows the Active object to know that all receivers are done processing the event and the payload object can safely be freed.
 
 The free function can also be used to let application know that event is being freed, so that any payloads can be safely recycled or re-used. Note that for time events, a time event can be freed even if there are still references to an attached event (in a queue to other Active object). 
 

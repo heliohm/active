@@ -1,24 +1,24 @@
 #include <active.h>
 #include <unity.h>
 
-static ACTP_QBUF(testQBuf, 1);
-static ACTP_Q(testQ);
-static ACTP_THREAD(testT);
-static ACTP_THREAD_STACK_DEFINE(testTStack, 512);
-static ACTP_THREAD_STACK_SIZE(testTStackSz, testTStack);
+static ACT_QBUF(testQBuf, 1);
+static ACT_Q(testQ);
+static ACT_THREAD(testT);
+static ACT_THREAD_STACK_DEFINE(testTStack, 512);
+static ACT_THREAD_STACK_SIZE(testTStackSz, testTStack);
 
-const static queueData qdtest = {.maxMsg = 1,
-                                 .queBuf = testQBuf,
-                                 .queue = &testQ};
+const static ACT_QueueData qdtest = {.maxMsg = 1,
+                                     .queBuf = testQBuf,
+                                     .queue = &testQ};
 
-const static threadData tdtest = {.thread = &testT,
-                                  .pri = 1,
-                                  .stack = testTStack,
-                                  .stack_size = testTStackSz};
+const static ACT_ThreadData tdtest = {.thread = &testT,
+                                      .pri = 1,
+                                      .stack = testTStack,
+                                      .stack_size = testTStackSz};
 
 enum TestUserSignal
 {
-  SIGNAL_UNDEFINED = ACT_USER_SIG,
+  ACT_SIGNAL_UNDEFINED = ACT_USER_SIG,
   ONESHOT_STATIC_STARTSTOP,
   ONESHOT_DYNAMIC_STARTSTOP,
   ONESHOT_STATIC_EXPIRE,
@@ -35,7 +35,7 @@ enum TestUserSignal
 Active ao;
 
 int64_t timeReceivedMs = 0, lastTimeReceivedMs = 0;
-enum TestUserSignal expectedSignal = SIGNAL_UNDEFINED;
+enum TestUserSignal expectedSignal = ACT_SIGNAL_UNDEFINED;
 uint16_t eventsReceived, correctEventsReceived;
 uint32_t expectedMsgPayload = 0;
 
@@ -43,7 +43,7 @@ static void ao_dispatch(Active *me, ACT_Evt const *const e)
 {
 
   // Ignore start signal
-  if (e->type == SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
+  if (e->type == ACT_SIGNAL && EVT_CAST(e, ACT_Signal)->sig == ACT_START_SIG)
   {
     return;
   }
@@ -52,7 +52,7 @@ static void ao_dispatch(Active *me, ACT_Evt const *const e)
   eventsReceived++;
 
   // Ignore events other than signal type in test
-  if (e->type == SIGNAL)
+  if (e->type == ACT_SIGNAL)
   {
     ACT_Signal *s = EVT_CAST(e, ACT_Signal);
 
@@ -62,12 +62,12 @@ static void ao_dispatch(Active *me, ACT_Evt const *const e)
 
       correctEventsReceived++;
       lastTimeReceivedMs = timeReceivedMs;
-      timeReceivedMs = k_uptime_get();
+      timeReceivedMs = ACT_TIMEMS_GET();
     }
   }
-  else if (e->type == MESSAGE)
+  else if (e->type == ACT_MESSAGE)
   {
-    Message *m = EVT_CAST(e, Message);
+    ACT_Message *m = EVT_CAST(e, ACT_Message);
     if (m->header == 0xBABA && expectedMsgPayload == *(uint32_t *)m->payload)
     {
       correctEventsReceived++;
@@ -84,10 +84,10 @@ static void test_function_timer_static_oneshot_startstop()
   expectedSignal = ONESHOT_STATIC_STARTSTOP;
 
   ACT_Signal sig;
-  Signal_init(&sig, &ao, expectedSignal);
+  ACT_Signal_init(&sig, &ao, expectedSignal);
 
-  TimeEvt te;
-  TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
+  ACT_TimEvt te;
+  ACT_TimEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
   ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   /* Test timer flag is indicating to be running */
@@ -100,7 +100,7 @@ static void test_function_timer_static_oneshot_startstop()
   /* Test timer flag is indicating to not be running */
   TEST_ASSERT_FALSE(te.timer.running);
 
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer actually did stop - no event received */
   TEST_ASSERT_EQUAL_UINT16(0, eventsReceived);
@@ -119,10 +119,10 @@ static void test_function_timer_dynamic_oneshot_startstop()
   expectedSignal = ONESHOT_DYNAMIC_STARTSTOP;
 
   ACT_Signal *sig;
-  sig = Signal_new(&ao, ONESHOT_DYNAMIC_STARTSTOP);
+  sig = ACT_Signal_new(&ao, ONESHOT_DYNAMIC_STARTSTOP);
 
-  TimeEvt *te;
-  te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
+  ACT_TimEvt *te;
+  te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
@@ -136,7 +136,7 @@ static void test_function_timer_dynamic_oneshot_startstop()
   /* Test timer flag is indicating to not be running */
   TEST_ASSERT_FALSE(te->timer.running);
 
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer actually did stop - no event received */
   TEST_ASSERT_EQUAL_UINT16(0, eventsReceived);
@@ -157,13 +157,13 @@ static void test_function_timer_static_oneshot_expire()
   expectedSignal = ONESHOT_STATIC_EXPIRE;
 
   ACT_Signal sig;
-  Signal_init(&sig, &ao, expectedSignal);
+  ACT_Signal_init(&sig, &ao, expectedSignal);
 
-  TimeEvt te;
-  TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
+  ACT_TimEvt te;
+  ACT_TimEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
 
   /* Test timer starting and expiring */
-  int64_t timeBeforeTest = k_uptime_get();
+  int64_t timeBeforeTest = ACT_TIMEMS_GET();
 
   ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
@@ -171,7 +171,7 @@ static void test_function_timer_static_oneshot_expire()
   TEST_ASSERT_TRUE(te.timer.running);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timing is correct */
   TEST_ASSERT_EQUAL_INT32(timeOutMs, (int32_t)(timeReceivedMs - timeBeforeTest));
@@ -184,7 +184,7 @@ static void test_function_timer_static_oneshot_expire()
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   /* Test no more events are received => one shot working as intended */
-  k_msleep(1 * timeOutMs);
+  ACT_SLEEPMS(1 * timeOutMs);
 
   TEST_ASSERT_EQUAL_INT32(timeOutMs, (int32_t)(timeReceivedMs - timeBeforeTest));
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
@@ -205,17 +205,17 @@ static void test_function_timer_dynamic_oneshot_expire()
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE;
 
-  ACT_Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE);
+  ACT_Signal *sig = ACT_Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE);
 
-  TimeEvt *te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
+  ACT_TimEvt *te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
   /* Test timer starting and expiring */
-  int64_t timeBeforeTest = k_uptime_get();
+  int64_t timeBeforeTest = ACT_TIMEMS_GET();
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timing is correct */
   TEST_ASSERT_EQUAL_INT32(timeOutMs, (int32_t)(timeReceivedMs - timeBeforeTest));
@@ -225,7 +225,7 @@ static void test_function_timer_dynamic_oneshot_expire()
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   /* Test no more events are received => one shot working as intended */
-  k_msleep(1 * timeOutMs);
+  ACT_SLEEPMS(1 * timeOutMs);
 
   TEST_ASSERT_EQUAL_INT32(timeOutMs, (int32_t)(timeReceivedMs - timeBeforeTest));
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
@@ -248,20 +248,20 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_STOP;
 
   ACT_Signal *sig;
-  TimeEvt *te;
+  ACT_TimEvt *te;
 
   size_t loops = 0;
   while (1)
   {
-    sig = Signal_new(&ao, expectedSignal);
-    te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
+    sig = ACT_Signal_new(&ao, expectedSignal);
+    te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
     // Add manual reference on time event to prevent it from being freed when expiring
     ACT_mem_refinc(EVT_UPCAST(te));
 
     ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
     // Linearly increasing sleep+busy wait period until hitting timer expiry (potential race condition)
-    k_msleep(sleepMs);
+    ACT_SLEEPMS(sleepMs);
     loops++;
     atomic_t i = loops;
     while (atomic_dec(&i))
@@ -282,9 +282,9 @@ static void test_function_timer_dynamic_oneshot_expire_stop()
   TEST_ASSERT_EQUAL(timeEvtUse, ACT_mem_TimeEvt_getUsed());
 }
 
-static ACT_Evt *static_oneshot_expFn(const TimeEvt *const te)
+static ACT_Evt *static_oneshot_expFn(const ACT_TimEvt *const te)
 {
-  const static SIGNAL_DEFINE(sig_timer_static_expfn_1, ONESHOT_STATIC_EXPIRE_EXPFN_1);
+  const static ACT_SIGNAL_DEFINE(sig_timer_static_expfn_1, ONESHOT_STATIC_EXPIRE_EXPFN_1);
 
   ACT_Signal *s = EVT_CAST(te->e, ACT_Signal);
 
@@ -305,34 +305,34 @@ static void test_function_timer_static_expFn()
   expectedSignal = ONESHOT_STATIC_EXPIRE_EXPFN_1;
 
   ACT_Signal sig;
-  Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_1);
+  ACT_Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_1);
 
-  TimeEvt te;
-  TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, static_oneshot_expFn);
+  ACT_TimEvt te;
+  ACT_TimEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, static_oneshot_expFn);
 
   ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer event posted attached event */
   TEST_ASSERT_EQUAL_UINT16(1, eventsReceived);
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   // Re-initialize attached signal that is now stopped with signal that should be replaced
-  Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_2);
+  ACT_Signal_init(&sig, &ao, ONESHOT_STATIC_EXPIRE_EXPFN_2);
 
   ACT_TimeEvt_start(&te, timeOutMs, periodMs);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer event posted new event from expiry function */
   TEST_ASSERT_EQUAL_UINT16(2, eventsReceived);
   TEST_ASSERT_EQUAL_UINT16(2, correctEventsReceived);
 }
 
-static ACT_Evt *dynamic_oneshot_expFn(const TimeEvt *const te)
+static ACT_Evt *dynamic_oneshot_expFn(const ACT_TimEvt *const te)
 {
 
   ACT_Signal *s = EVT_CAST(te->e, ACT_Signal);
@@ -340,7 +340,7 @@ static ACT_Evt *dynamic_oneshot_expFn(const TimeEvt *const te)
   // Replace event
   if (s->sig == ONESHOT_DYNAMIC_EXPIRE_EXPFN_2)
   {
-    return EVT_UPCAST(Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1));
+    return EVT_UPCAST(ACT_Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1));
   }
   // Default: Don't replace event
   return (ACT_Evt *)NULL;
@@ -357,27 +357,27 @@ static void test_function_timer_dynamic_expFn()
 
   expectedSignal = ONESHOT_DYNAMIC_EXPIRE_EXPFN_1;
 
-  ACT_Signal *sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1);
+  ACT_Signal *sig = ACT_Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_1);
 
-  TimeEvt *te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
+  ACT_TimEvt *te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer event posted attached event */
   TEST_ASSERT_EQUAL_UINT16(1, eventsReceived);
   TEST_ASSERT_EQUAL_UINT16(1, correctEventsReceived);
 
   // Re-initialize attached signal that is now stopped with signal that should be replaced
-  sig = Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_2);
-  te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
+  sig = ACT_Signal_new(&ao, ONESHOT_DYNAMIC_EXPIRE_EXPFN_2);
+  te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, dynamic_oneshot_expFn);
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
 
   // Run to expiration
-  k_msleep(timeOutMs);
+  ACT_SLEEPMS(timeOutMs);
 
   /* Test timer event posted new event from expiry function */
   TEST_ASSERT_EQUAL_UINT16(2, eventsReceived);
@@ -398,16 +398,16 @@ static void test_function_timer_static_periodic_expire()
   expectedSignal = PERIODIC_STATIC_EXPIRE;
 
   ACT_Signal sig;
-  Signal_init(&sig, &ao, PERIODIC_STATIC_EXPIRE);
+  ACT_Signal_init(&sig, &ao, PERIODIC_STATIC_EXPIRE);
 
-  TimeEvt te;
-  TimeEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
+  ACT_TimEvt te;
+  ACT_TimEvt_init(&te, &ao, EVT_UPCAST(&sig), &ao, NULL);
 
   ACT_TimeEvt_start(&te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
   TEST_ASSERT_TRUE(te.timer.running);
 
-  k_msleep(numEvents * periodMs);
+  ACT_SLEEPMS(numEvents * periodMs);
 
   bool status = ACT_TimeEvt_stop(&te);
 
@@ -420,7 +420,7 @@ static void test_function_timer_static_periodic_expire()
   /* Time between two last events is correct */
   TEST_ASSERT_EQUAL_INT32(periodMs, (int32_t)(timeReceivedMs - lastTimeReceivedMs));
 
-  k_msleep(1 * periodMs);
+  ACT_SLEEPMS(1 * periodMs);
 
   /* Timer is stopped - no more events are fired */
   TEST_ASSERT_FALSE(te.timer.running);
@@ -440,16 +440,16 @@ static void test_function_timer_dynamic_periodic_expire()
   expectedSignal = PERIODIC_DYNAMIC_EXPIRE;
 
   ACT_Signal *sig;
-  sig = Signal_new(&ao, PERIODIC_DYNAMIC_EXPIRE);
+  sig = ACT_Signal_new(&ao, PERIODIC_DYNAMIC_EXPIRE);
 
-  TimeEvt *te;
-  te = TimeEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
+  ACT_TimEvt *te;
+  te = ACT_TimEvt_new(EVT_UPCAST(sig), &ao, &ao, NULL);
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
   TEST_ASSERT_TRUE(te->timer.running);
 
-  k_msleep(numEvents * periodMs);
+  ACT_SLEEPMS(numEvents * periodMs);
 
   bool status = ACT_TimeEvt_stop(te);
 
@@ -462,7 +462,7 @@ static void test_function_timer_dynamic_periodic_expire()
   /* Time between two last events is correct */
   TEST_ASSERT_EQUAL_INT32(periodMs, (int32_t)(timeReceivedMs - lastTimeReceivedMs));
 
-  k_msleep(1 * periodMs);
+  ACT_SLEEPMS(1 * periodMs);
 
   /* Timer is stopped - no more events are fired */
   TEST_ASSERT_FALSE(te->timer.running);
@@ -480,10 +480,10 @@ static uint16_t header = 0xBABA;
 static uint32_t *writeBuf = buf0;
 static char writeBufIdx = 0;
 
-ACT_Evt *msgExpFn(const TimeEvt *const te)
+ACT_Evt *msgExpFn(const ACT_TimEvt *const te)
 {
 
-  static Message *msg = NULL;
+  static ACT_Message *msg = NULL;
 
   if (msg)
   {
@@ -491,7 +491,7 @@ ACT_Evt *msgExpFn(const TimeEvt *const te)
     TEST_ASSERT_EQUAL_PTR(msg, te->e);
   }
   // Prepare message with old write buffer
-  msg = Message_new(&ao, header, writeBuf, bufSz);
+  msg = ACT_Message_new(&ao, header, writeBuf, bufSz);
 
   // Swap write buffer.
   writeBuf = (writeBuf == buf0) ? buf1 : buf0;
@@ -516,8 +516,8 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
   size_t numEvents = 10;
 
   // Initial time event has no attached event.
-  TimeEvt *te;
-  te = TimeEvt_new(EVT_UPCAST(NULL), &ao, &ao, msgExpFn);
+  ACT_TimEvt *te;
+  te = ACT_TimEvt_new(EVT_UPCAST(NULL), &ao, &ao, msgExpFn);
 
   ACT_TimeEvt_start(te, timeOutMs, periodMs);
   /* Timer is indicating to be running */
@@ -535,7 +535,7 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
     test function runs in different context.
     However, an active object creating a time event / message will have expiry function called in same context and be safe. */
     expectedMsgPayload = (writeBuf == buf0 ? buf0[0] : buf1[0]);
-    k_msleep(periodMs);
+    ACT_SLEEPMS(periodMs);
   }
 
   bool status = ACT_TimeEvt_stop(te);
@@ -546,7 +546,7 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
   /* Correct number of events fired */
   TEST_ASSERT_EQUAL_UINT16(numEvents, correctEventsReceived);
 
-  k_msleep(1 * periodMs);
+  ACT_SLEEPMS(1 * periodMs);
 
   /* Timer is stopped - no more events are fired */
   TEST_ASSERT_FALSE(te->timer.running);
@@ -559,7 +559,7 @@ static void test_function_timer_dynamic_periodic_expire_expFn()
 
 void setUp()
 {
-  expectedSignal = SIGNAL_UNDEFINED;
+  expectedSignal = ACT_SIGNAL_UNDEFINED;
   expectedMsgPayload = 0;
   eventsReceived = 0;
   correctEventsReceived = 0;
@@ -569,12 +569,12 @@ void setUp()
 
 void main()
 {
-  k_msleep(2000);
+  ACT_SLEEPMS(2000);
 
   UNITY_BEGIN();
 
-  ACTP_init(&ao, ao_dispatch, &qdtest, &tdtest);
-  ACTP_start(&ao);
+  ACT_init(&ao, ao_dispatch, &qdtest, &tdtest);
+  ACT_start(&ao);
 
   /* Test a oneshot timer event w attached event that is started and stopped before expiry */
   RUN_TEST(test_function_timer_static_oneshot_startstop);

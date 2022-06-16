@@ -12,11 +12,11 @@ static TimerType getTimerType(const ACT_Timer *const timer)
 }
 
 // Runs in ISR context - called from underlying port/framework
-void ACT_Timer_expiryCB(TimeEvt *const te)
+void ACT_Timer_expiryCB(ACT_TimEvt *const te)
 {
 
   // Post time event
-  ACT_postTimeEvt(te);
+  ACT_postTimEvt(te);
 
   if (getTimerType(&(te->timer)) == ONESHOT)
   {
@@ -29,7 +29,7 @@ void ACT_Timer_expiryCB(TimeEvt *const te)
   }
 }
 
-void ACT_TimeEvt_dispatch(TimeEvt *const te)
+void ACT_TimeEvt_dispatch(ACT_TimEvt *const te)
 {
   if (te->expFn)
   {
@@ -51,10 +51,10 @@ void ACT_TimeEvt_dispatch(TimeEvt *const te)
       }
     }
     // Ensure not both initial attached event and return from expiry function was NULL
-    ACTP_ASSERT(te->e != NULL, "Attached event is NULL");
+    ACT_ASSERT(te->e != NULL, "Attached event is NULL");
   }
 
-  ACT_post(te->receiver, te->e);
+  ACT_postEvt(te->receiver, te->e);
 
   /* One shot events: Remove ref for freeing once posted */
   if (getTimerType(&(te->timer)) == ONESHOT)
@@ -64,20 +64,20 @@ void ACT_TimeEvt_dispatch(TimeEvt *const te)
 }
 
 /* @private. Initialize the timer part of a Time ACT_Evt. Not to be called by the application */
-void ACT_Timer_init(TimeEvt *te)
+void ACT_Timer_init(ACT_TimEvt *te)
 {
   ACT_Timer *tp = &(te->timer);
-  ACTP_TIMER_INIT(tp, ACTP_TimerExpiryFn);
-  ACTP_TIMER_PARAM_SET(tp, te);
+  ACT_TIMER_INIT(tp, ACT_NativeTimerExpiryFn);
+  ACT_TIMER_PARAM_SET(tp, te);
 
   te->timer.running = false;
   te->timer.sync = false;
 }
 
-void ACT_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
+void ACT_TimeEvt_start(ACT_TimEvt *te, size_t durationMs, size_t periodMs)
 {
-  ACTP_ASSERT(te != NULL, "Timer event is NULL");
-  ACTP_ASSERT(te->super.type == TIMEREVT, "Timer event not initialized properly");
+  ACT_ASSERT(te != NULL, "Timer event is NULL");
+  ACT_ASSERT(te->super.type == ACT_TIMEVT, "Timer event not initialized properly");
 
   if (te->timer.running)
   {
@@ -100,10 +100,10 @@ void ACT_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs)
   te->timer.periodMs = periodMs;
 
   ACT_Timer *tp = &(te->timer);
-  ACTP_TIMER_START(tp, durationMs, periodMs);
+  ACT_TIMER_START(tp, durationMs, periodMs);
 }
 
-bool ACT_TimeEvt_stop(TimeEvt *te)
+bool ACT_TimeEvt_stop(ACT_TimEvt *te)
 {
   bool ret = false;
 
@@ -115,7 +115,7 @@ bool ACT_TimeEvt_stop(TimeEvt *te)
   te->timer.sync = true;
 
   ACT_Timer *tp = &(te->timer);
-  ACTP_TIMER_STOP(tp);
+  ACT_TIMER_STOP(tp);
 
   // Timer was stopped and did not expire first -> cleanup dynamic event
 

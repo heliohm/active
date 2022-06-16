@@ -11,9 +11,9 @@
  * @brief Data structure for Active timer part of time events. Do not access members directly.
  *
  */
-struct timerData
+struct active_timerData
 {
-  ACTP_TIMER(impl);
+  ACT_TIMER(impl);
   size_t durationMs;
   size_t periodMs;
   volatile bool running;
@@ -25,7 +25,7 @@ struct timerData
  *
  * @param te
  */
-void ACT_Timer_init(TimeEvt *te);
+void ACT_Timer_init(ACT_TimEvt *te);
 
 /**
  * @brief Internal: Callback to handle timer expiry. Must not be used by application.
@@ -33,18 +33,18 @@ void ACT_Timer_init(TimeEvt *te);
  *
  * @param te The Time event whose timer expired
  */
-void ACT_Timer_expiryCB(TimeEvt *const te);
+void ACT_Timer_expiryCB(ACT_TimEvt *const te);
 
 /**
  * @brief Internal: Callback to process time events. Must not be used by application.
  * Used by Active framework to process expired time events and post attached events.
  */
-void ACT_TimeEvt_dispatch(TimeEvt *te);
+void ACT_TimeEvt_dispatch(ACT_TimEvt *te);
 
 /**
  * @brief Time event expiry function prototype.
- * When a time event expires, an optional time event is called to let the application replace the attached event or
- * keep track of state in the application.
+ * When a time event expires, an optional expiry function given during initialization is called to
+ * let the application replace the attached event or keep track of state in the application.
  *
  * The expiry function runs in context of the Active object @a me that created the event.
  *
@@ -54,7 +54,7 @@ void ACT_TimeEvt_dispatch(TimeEvt *te);
  * @return (ACT_Evt*)NULL - Indicate to framework to keep the existing attached event.
  *
  */
-typedef ACT_Evt *(*TimerExpiryHandler)(TimeEvt const *const te);
+typedef ACT_Evt *(*ACT_TimerExpiryFn)(ACT_TimEvt const *const te);
 
 /**
  * @brief Start a time event. The attached event will be posted when the timer expires
@@ -63,13 +63,13 @@ typedef ACT_Evt *(*TimerExpiryHandler)(TimeEvt const *const te);
  * When a one shot time event expires, a dynamic time event and attached dynamic events will be freed after processing.
  *
  * @param te  The initialized time event to start. Time event must be allocated and
- *            initialized with TimeEvt_new (dynamic allocated event) or with TimeEvt_init (static event)
+ *            initialized with ACT_TimEvt_new (dynamic allocated event) or with ACT_TimEvt_init (static event)
  * @param durationMs The (minimum) duration until attached event is posted
  * @param periodMs The (minimum) duration until subsequent posting of event. Set to 0 for a one-shot timer.
  *
  * @warning Do not call function with a dynamic time event pointer that is previously stopped or expired, as those are freed.
  */
-void ACT_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
+void ACT_TimeEvt_start(ACT_TimEvt *te, size_t durationMs, size_t periodMs);
 
 /**
  *  @brief Stop a time event
@@ -88,6 +88,6 @@ void ACT_TimeEvt_start(TimeEvt *te, size_t durationMs, size_t periodMs);
  *  @warning Do not use dynamic timer event again after stopping it, as the time event and attached event will be freed.
  *  @warning Do not stop a timer event from an ISR.
  **/
-bool ACT_TimeEvt_stop(TimeEvt *te);
+bool ACT_TimeEvt_stop(ACT_TimEvt *te);
 
 #endif /* ACTIVE_TIMER_H */

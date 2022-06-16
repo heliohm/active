@@ -9,9 +9,9 @@ enum TestUserSignal
 void test_signal_new()
 {
   Active ao;
-  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = ACT_Signal_new(&ao, TEST_SIG);
 
-  TEST_ASSERT_EQUAL(SIGNAL, s->super.type);
+  TEST_ASSERT_EQUAL(ACT_SIGNAL, s->super.type);
   TEST_ASSERT_EQUAL(&ao, s->super._sender);
   TEST_ASSERT_EQUAL(TEST_SIG, s->sig);
   TEST_ASSERT_TRUE(s->super._dynamic);
@@ -28,7 +28,7 @@ void test_message_new()
   static const size_t len = sizeof(msgPayload) / sizeof(msgPayload[0]);
   uint16_t header = 0xBABA;
 
-  Message *m = Message_new(&ao, header, (void *)msgPayload, len);
+  ACT_Message *m = ACT_Message_new(&ao, header, (void *)msgPayload, len);
 
   TEST_ASSERT_EQUAL_UINT16(header, m->header);
   TEST_ASSERT_EQUAL_PTR(&msgPayload, m->payload);
@@ -45,9 +45,9 @@ void test_timeevt_new()
   Active ao;
   ACT_Evt e;
 
-  TimeEvt *te = TimeEvt_new(&e, &ao, &ao, NULL);
+  ACT_TimEvt *te = ACT_TimEvt_new(&e, &ao, &ao, NULL);
 
-  TEST_ASSERT_EQUAL(TIMEREVT, te->super.type);
+  TEST_ASSERT_EQUAL(ACT_TIMEVT, te->super.type);
   TEST_ASSERT_EQUAL(&ao, te->super._sender);
   TEST_ASSERT_TRUE(te->super._dynamic);
   TEST_ASSERT_EQUAL_UINT16(0, te->super._refcnt);
@@ -67,7 +67,7 @@ void test_active_mem_gc()
   for (uint16_t i = 0; i < ACT_MEM_NUM_SIGNALS + 10; i++)
   {
     uint32_t numUsed = ACT_mem_Signal_getUsed();
-    ACT_Signal *s = Signal_new(&ao, TEST_SIG);
+    ACT_Signal *s = ACT_Signal_new(&ao, TEST_SIG);
     TEST_ASSERT_NOT_NULL(s);
     TEST_ASSERT_EQUAL(numUsed + 1, ACT_mem_Signal_getUsed());
     ACT_mem_gc(EVT_UPCAST(s));
@@ -78,7 +78,7 @@ void test_active_mem_gc()
 void test_active_mem_ref_inc()
 {
   Active ao;
-  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = ACT_Signal_new(&ao, TEST_SIG);
   ACT_mem_refinc(EVT_UPCAST(s));
   TEST_ASSERT_EQUAL_UINT16(1, ACT_mem_getRefCount(EVT_UPCAST(s)));
 }
@@ -87,7 +87,7 @@ void test_active_mem_ref_dec()
 {
   Active ao;
 
-  ACT_Signal *s = Signal_new(&ao, TEST_SIG);
+  ACT_Signal *s = ACT_Signal_new(&ao, TEST_SIG);
 
   ACT_mem_refinc(EVT_UPCAST(s));
   ACT_mem_refdec(EVT_UPCAST(s));
@@ -97,7 +97,7 @@ void test_active_mem_ref_dec()
 
 void main()
 {
-  k_msleep(2000);
+  ACT_SLEEPMS(2000);
 
   UNITY_BEGIN();
 

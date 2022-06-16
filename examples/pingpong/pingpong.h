@@ -8,6 +8,6 @@ typedef struct
   Active super;
 } PingPong;
 
-void PingPong_init(PingPong *const me, queueData const *qd, threadData const *td);
+void PingPong_init(PingPong *const me, ACT_QueueData const *qd, ACT_ThreadData const *td);
 
 #endif
