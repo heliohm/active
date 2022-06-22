@@ -2,6 +2,8 @@
 #define ACTIVE_H
 
 #include <active_config_loader.h>
+
+#include <active_assert.h>
 #include <active_mem.h>
 #include <active_msg.h>
 #include <active_psmsg.h>

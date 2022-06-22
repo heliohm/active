@@ -6,10 +6,43 @@
 #include <active_types.h>
 
 /*******************************
- *  Compiler intrinsics
+ *  Compiler intrinsics & CPU architecture
  ******************************/
 
+#ifndef __arm__
+#error "This port only supports ARM architectures"
+#endif /* __arm__ */
+
 #ifdef __GNUC__
+
+/**
+ * @brief GCC specific functions for assert handling
+ *
+ */
+
+/* Weak reference for assert function to be overriden by application */
+#define ACTIVE_WEAK __attribute__((weak))
+
+/**
+ * @brief External function call (not inlined) to get caller address around assert (approx PC).
+ * Static for now (TODO: fix) that gives every compilation unit a copy
+ *
+ */
+#pragma GCC diagnostic ignored "-Wunused-function"
+static void *__attribute__((noinline)) active_get_pc()
+{
+  return __builtin_return_address(0);
+}
+
+/* Get program counter */
+#define ACT_GET_PROGRAM_COUNTER() active_get_pc()
+/* Get return address of current function */
+#define ACT_GET_RETURN_ADDRESS() __builtin_return_address(0)
+/* Base file name (i.e. without full path */
+#define ACT_GET_FILE() __BASE_FILE__
+/* Line in source file */
+#define ACT_GET_LINE() __LINE__
+
 #else
 #error "No supported compiler found"
 #endif /* __GNUC__ */
@@ -21,10 +54,6 @@
 #include <zephyr.h>
 
 #ifdef __ZEPHYR__
-
-/* Zephyr implemtation of asserts */
-#define ACT_ASSERT(test, errMsg, ...) __ASSERT(test, errMsg, ##__VA_ARGS__) // Runtime assert
-#define ACT_CASSERT(test, errMsg) BUILD_ASSERT(test, errMsg)                // Compile time assert
 
 /**
  * @brief Zephyr RTOS port of a queue used by the Active framework
