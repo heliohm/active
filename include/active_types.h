@@ -36,4 +36,6 @@ typedef struct active_timerData ACT_Timer;
 /* Memory pool type */
 typedef struct active_mempoolData ACT_Mempool;
 
+/* Assert handler function prototype */
+typedef struct active_assertinfo Active_AssertInfo;
 #endif /* ACTIVE_TYPES_H */

@@ -1,7 +1,5 @@
 #include <active.h>
 
-typedef void (*activeAssertHandler)(Active_AssertInfo *);
-
 /* Default assert handler. Can be replaced in application active_config.h
 Active_AssertInfo* is a pointer to an auto variable; the aplication needs to do a copy of any members of interest */
 void Active_assertHandler(Active_AssertInfo *assertinfo)
@@ -10,7 +8,10 @@ void Active_assertHandler(Active_AssertInfo *assertinfo)
     ;
 }
 
-static const activeAssertHandler handler = ACT_ASSERT_FN;
+/* Avoid redefining symbol */
+#if ACT_ASSERT_FN != Active_assertHandler
+static extern activeAssertHandler ACT_ASSERT_FN;
+#endif /* ACT_ASSERT_FN != Active_assertHandler */
 
 void Active_assert(void *pc, void *lr, char *test, char *file, uint32_t line)
 {
@@ -21,5 +22,5 @@ void Active_assert(void *pc, void *lr, char *test, char *file, uint32_t line)
       .file = file,
       .line = line};
 
-  handler(&a);
+  ACT_ASSERT_FN(&a);
 }

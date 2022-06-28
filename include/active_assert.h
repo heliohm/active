@@ -6,6 +6,7 @@
 
 #include <active_config_loader.h>
 #include <active_port.h>
+#include <active_types.h>
 
 /**
  * @brief @internal - Used by Active assert module to call application assert handler for Active
@@ -13,14 +14,16 @@
  */
 void Active_assert(void *pc, void *lr, char *test, char *file, uint32_t line);
 
-typedef struct active_assertinfo
+typedef void (*activeAssertHandler)(Active_AssertInfo *);
+
+struct active_assertinfo
 {
   void *pc;      /* Approx CPU program counter */
   void *lr;      /* CPU return address */
   char *test;    /* Test that failed assert */
   char *file;    /* Name of file */
   uint32_t line; /* Line of file */
-} Active_AssertInfo;
+};
 
 #if ACT_ASSERT_ENABLE == 1 && defined(ACT_ASSERT_LEVEL)
 

@@ -311,6 +311,23 @@ When starting a time event, the underlying framework's timer implementation will
 
 To stop a one shot Time event before expiry or to stop a running periodic Time event, the `ACT_TimeEvt_stop` is used.
 
+### Asserts
+
+The Active framework contains asserts on a few elements that are critical for operation in an embedded system:
+- Null pointers given as argument for mandatory parameters
+- Uninitialized events (only for events of static storage type with members initialized to 0)
+- Failed memory allocation for dynamic events
+- Failure to post events to a queue (full) or get events from a queue
+
+Asserts are enabled by default and can be configured in an application configuration file `active_config.h`.
+When an assert is triggered, the Active framework calls an application defined assert handler or the default handler.
+
+The following can be configured:
+- Assert enable (default: Enabled)
+- Assert function (default: `Active_assertHandler`)
+- Assert level to trade off metadata detail level vs ROM size for file names etc (default: standard, no file names)
+
+For standard and full assert levels, the framework includes the caller function's return address and a best guess for CPU program counter (a few lines of code after).
 
 ### Usage rules - Dynamic events
 
@@ -339,8 +356,8 @@ The free function can also be used to let application know that event is being f
 
 ## Ideas Roadmap
 
-- Finish refactoring framework into _port files (remaining: sleep functions)
-- Improving asserts (assert levels, test coverage w/o asserts, ROM size usage (create LUT for file / line / message))
+
+- Improving asserts (test coverage w/o asserts)
 - Make max usage of AO queues available to the application
 - Review atomic accesses (e.g. memory references) 
 - Add more usage examples
