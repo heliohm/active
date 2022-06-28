@@ -3,13 +3,14 @@
 
 #if defined __has_include
 #if __has_include(<active_config.h>)
-#include "" active_config.h>
-#else
+#include <active_config.h>
+#else /* __has_include(<active_config.h>) */
 #warning "active_config.h file not found during compilation, using minimal defaults for tests. Check include directories."
-#endif
-#else
+#endif /* __has_include(<active_config.h>) */
+#else  /* __has_include */
 #warning __has_include macro note supported in compiler. Edit this file to configure library.
-#endif
+// #include <active_config.h> /* Comment in this line and remove warning to set up library
+#endif /* __has_include */
 
 /**
  * @brief Defines for Active memory pool sizes

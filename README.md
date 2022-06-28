@@ -58,7 +58,7 @@ The library project is set up as a PlatformIO project (https://platformio.org/) 
 The project is set up using the STM32 NUCLEO L552ZE_Q board, using a custom board file located in the boards/ folder.
 Refer to PlatformIO documentation for how to change boards for testing Active as a standalone project.
 
-Usage examples are found in the examples/ folder. Select which example application to build together with framework in platformio.ini (build_src_filter)
+Usage examples are found in the examples/ folder. Select which example application to build together with framework in platformio.ini (`selected_example`)
 
 The library can be configured by an application through adding a custom `active_config.h` in the compiler search path to override default settings. 
 Available configuration settings and defaults are located in `active_config_loader.h`.

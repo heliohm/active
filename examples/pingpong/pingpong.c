@@ -1,8 +1,8 @@
 // pingpong.c
 
 #include <active.h>
-#include "active_app_messages.h"
-#include "pingpong.h"
+#include <active_app_messages.h>
+#include <pingpong.h>
 
 #include <console/console.h>
 
