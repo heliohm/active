@@ -1,1 +1,0 @@
-#define ACT_ASSERT_ENABLE 0
