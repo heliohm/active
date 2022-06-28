@@ -1,4 +1,3 @@
-#include <stdalign.h>
 #include <active.h>
 
 #ifdef __ZEPHYR__
@@ -9,19 +8,19 @@
 https://docs.zephyrproject.org/latest/reference/kernel/data_passing/message_queues.html */
 
 _Static_assert(sizeof(ACT_Evt) == 12, "ACT_Evt type is not the right size.");
-_Static_assert(alignof(ACT_Evt *) == 4, "Alignment of ACT_Evt pointer type must be a power of 2");
+_Static_assert(_Alignof(ACT_Evt *) == 4, "Alignment of ACT_Evt pointer type must be a power of 2");
 
 /* Zephyr limitations on memory slab alignment and object size:
 https://docs.zephyrproject.org/latest/kernel/memory_management/slabs.html */
 
 _Static_assert(sizeof(ACT_TimEvt) == 96, "ACT_TimEvt type is not the right size.");
-_Static_assert(alignof(ACT_TimEvt) == 8, "Alignment ACT_TimEvt type");
+_Static_assert(_Alignof(ACT_TimEvt) == 8, "Alignment ACT_TimEvt type");
 
 _Static_assert(sizeof(ACT_Message) == 20, "ACT_Message type is not the right size.");
-_Static_assert(alignof(ACT_Message) == 4, "Alignment ACT_Message type");
+_Static_assert(_Alignof(ACT_Message) == 4, "Alignment ACT_Message type");
 
 _Static_assert(sizeof(ACT_Signal) == 16, "ACT_Signal type is not the right size.");
-_Static_assert(alignof(ACT_Signal) == 4, "Alignment ACT_Signal type");
+_Static_assert(_Alignof(ACT_Signal) == 4, "Alignment ACT_Signal type");
 
 /* Zephyr thread entry function */
 static void active_entry(void *arg1, void *arg2, void *arg3)

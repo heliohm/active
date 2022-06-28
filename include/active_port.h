@@ -1,8 +1,6 @@
 #ifndef ACTIVE_PORT_H
 #define ACTIVE_PORT_H
 
-#include <stdalign.h>
-
 #include <active_types.h>
 
 /*******************************
@@ -66,7 +64,7 @@ Used by application to set up a queue */
 
 /* Declare a message queue buffer with name bufName and room for maxMsg messages.
 Used by application to set up a buffer for the queue */
-#define ACT_QBUF(bufSym, maxMsg) char alignas(alignof(ACT_Evt *)) bufSym[sizeof(ACT_Evt *) * maxMsg]
+#define ACT_QBUF(bufSym, maxMsg) _Alignas(ACT_Evt *) char bufSym[sizeof(ACT_Evt *) * maxMsg]
 
 /* @internal - Get an entry from the message queue. Used by active framework to get Events in Active objects.
 Function blocks Active object forever until message is put on its queue  */
@@ -139,7 +137,7 @@ https://docs.zephyrproject.org/latest/kernel/services/threads/index.html#thread-
  */
 
 /* @internal  - Declare *and* initialize a static memory pool */
-#define ACT_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, alignof(type))
+#define ACT_MEMPOOL_DEFINE(memPoolSym, type, numObjects) K_MEM_SLAB_DEFINE(memPoolSym, sizeof(type), numObjects, _Alignof(type))
 
 /* @internal - Get number of used entries in memory pool. Used for testing */
 #define ACT_MEMPOOL_USED_GET(memPoolPtr) (memPoolPtr)->num_used
