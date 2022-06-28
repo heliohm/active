@@ -2,15 +2,9 @@
 
 typedef void (*activeAssertHandler)(Active_AssertInfo *);
 
-/* Weak assert handler. Can be replaced during linking by application.
+/* Default assert handler. Can be replaced in application active_config.h
 Active_AssertInfo* is a pointer to an auto variable; the aplication needs to do a copy of any members of interest */
-void ACTIVE_WEAK Active_assertHandler(Active_AssertInfo *assertinfo)
-{
-  while (1)
-    ;
-}
-
-void Active_assertHandler2(Active_AssertInfo *assertinfo)
+void Active_assertHandler(Active_AssertInfo *assertinfo)
 {
   while (1)
     ;

@@ -20,12 +20,9 @@
  *
  */
 
-/* Weak reference for assert function to be overriden by application */
-#define ACTIVE_WEAK __attribute__((weak))
-
 /**
  * @brief External function call (not inlined) to get caller address around assert (approx PC).
- * Static for now (TODO: fix) that gives every compilation unit a copy
+ * Static for now that gives every compilation unit a copy
  *
  */
 #pragma GCC diagnostic ignored "-Wunused-function"

@@ -15,7 +15,7 @@ void Active_assert(void *pc, void *lr, char *test, char *file, uint32_t line);
 
 typedef struct active_assertinfo
 {
-  void *pc;      /* CPU program counter */
+  void *pc;      /* Approx CPU program counter */
   void *lr;      /* CPU return address */
   char *test;    /* Test that failed assert */
   char *file;    /* Name of file */
@@ -59,7 +59,6 @@ typedef struct active_assertinfo
 #error "Invalid assert level"
 #endif /* ACT_ASSERT_LEVEL == ACT_ASSERT_LEVEL_MIN */
 #else
-
 #define ACT_ASSERT_IMPL(test, errMsg, file, line, ...)
 
 #endif /* defined(ACT_ASSERT_ENABLE) && defined(ACT_ASSERT_LEVEL) */
