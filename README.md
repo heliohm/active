@@ -217,8 +217,8 @@ Therefore, if a statically allocated event or its payload needs to be modified o
 
 ### Creating events - memory pool sizing
 
-Memory pools for each event type are instanciated private to the the `active_mem` module. They are allocated compile-time, with pool sizes defined in `active_mem.h` (should be refactored).
-Pool sizes can be found through analyzing the application and monitoring the max usage of memory pools during development and stress testing. (TODO)
+Memory pools for each event type are instanciated private to the the `active_mem` module. They are allocated compile-time, with configurable pool sizes.
+Pool sizes can be found through analyzing the application and monitoring the max usage of memory pools during development and stress testing. (TODO: exposing max use)
 
 ### Posting events
 
